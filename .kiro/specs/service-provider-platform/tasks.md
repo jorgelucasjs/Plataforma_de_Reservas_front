@@ -211,14 +211,23 @@
     - Add automatic token refresh and logout handling
     - _Requirements: 1.4, 1.6, 1.7_
 
-- [ ] 8. Build main application layout and navigation
-  - [ ] 8.1 Create main application layout
+- [x] 8. Build main application layout and navigation
+
+
+
+
+
+  - [x] 8.1 Create main application layout
+
+
     - Implement AppLayout with responsive navigation
     - Add user menu with profile and logout options
     - Create role-based navigation menu items
     - _Requirements: 10.1, 10.2, 10.3, 10.4_
   
-  - [ ] 8.2 Implement dashboard pages
+  - [x] 8.2 Implement dashboard pages
+
+
     - Create role-specific dashboard components
     - Add balance display and quick action buttons
     - Implement dashboard navigation and overview cards
