@@ -3,9 +3,9 @@ import {
   VStack,
   Text,
   Button,
-  Icon,
 } from '@chakra-ui/react';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+
 
 interface EmptyStateProps {
   icon?: ReactNode;
@@ -35,14 +35,14 @@ export function EmptyState({
       borderStyle="dashed"
       borderColor="gray.300"
     >
-      <VStack spacing={4}>
+      <VStack p={4}>
         {icon && (
           <Box color="gray.400" fontSize="4xl">
             {icon}
           </Box>
         )}
         
-        <VStack spacing={2}>
+        <VStack p={2}>
           <Text fontSize="lg" fontWeight="medium" color="gray.800">
             {title}
           </Text>
