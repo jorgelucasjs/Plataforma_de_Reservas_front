@@ -305,20 +305,36 @@ function BookingConfirmation({
   userBalance,
   bookingError
 }: BookingConfirmationProps) {
+  const [showBalanceWarning, setShowBalanceWarning] = useState(false);
+
   if (!isOpen || !service) return null;
 
   const hasInsufficientBalance = userBalance < service.price;
   const remainingBalance = userBalance - service.price;
   const shortfall = hasInsufficientBalance ? service.price - userBalance : 0;
 
-  // Show balance warning when user tries to book with insufficient balance
+  // Enhanced balance validation with immediate feedback
   const handleConfirmClick = () => {
     if (hasInsufficientBalance) {
+      setShowBalanceWarning(true);
       ToastService.insufficientBalance(service.name, service.price, userBalance);
+      
+      // Auto-hide warning after 5 seconds
+      setTimeout(() => setShowBalanceWarning(false), 5000);
       return;
     }
+    
+    // Clear any previous warnings
+    setShowBalanceWarning(false);
     onConfirm();
   };
+
+  // Reset warning when dialog opens/closes
+  React.useEffect(() => {
+    if (isOpen) {
+      setShowBalanceWarning(false);
+    }
+  }, [isOpen]);
 
   return (
     <Box
@@ -344,11 +360,13 @@ function BookingConfirmation({
         overflowY="auto"
       >
         <HStack mb={4} align="center">
-          <Heading size="md" flex="1">Confirm Booking</Heading>
+          <Heading size="md" flex="1">
+            {isBooking ? 'Processing Booking...' : 'Confirm Booking'}
+          </Heading>
           {isBooking && (
             <HStack gap={2} color="blue.600">
               <Spinner size="sm" />
-              <Text fontSize="sm">Processing...</Text>
+              <Text fontSize="sm" fontWeight="medium">Processing...</Text>
             </HStack>
           )}
         </HStack>
@@ -394,8 +412,15 @@ function BookingConfirmation({
             </VStack>
           </Box>
 
-          {hasInsufficientBalance && (
-            <Box p={4} bg="red.50" border="1px" borderColor="red.200" borderRadius="md">
+          {(hasInsufficientBalance || showBalanceWarning) && (
+            <Box 
+              p={4} 
+              bg="red.50" 
+              border="1px" 
+              borderColor="red.200" 
+              borderRadius="md"
+              animation={showBalanceWarning ? "pulse 0.5s ease-in-out" : undefined}
+            >
               <HStack gap={2} mb={2}>
                 <MdError color="red" />
                 <Text fontWeight="bold" color="red.700">Insufficient Balance</Text>
@@ -403,9 +428,14 @@ function BookingConfirmation({
               <Text color="red.700" fontSize="sm" mb={2}>
                 You need {formatCurrency(shortfall)} more to book this service.
               </Text>
-              <Text color="red.600" fontSize="xs">
+              <Text color="red.600" fontSize="xs" mb={2}>
                 Please add funds to your account or choose a different service.
               </Text>
+              {showBalanceWarning && (
+                <Text color="red.800" fontSize="xs" fontWeight="bold">
+                  ⚠️ Cannot proceed with booking - insufficient funds
+                </Text>
+              )}
             </Box>
           )}
 
@@ -421,14 +451,17 @@ function BookingConfirmation({
             </Box>
           )}
 
-          {!hasInsufficientBalance && !bookingError && (
+          {!hasInsufficientBalance && !bookingError && !showBalanceWarning && (
             <Box p={4} bg="green.50" border="1px" borderColor="green.200" borderRadius="md">
               <HStack gap={2} mb={2}>
                 <MdCheckCircle color="green" />
                 <Text fontWeight="bold" color="green.700">Ready to Book</Text>
               </HStack>
-              <Text color="green.700" fontSize="sm">
+              <Text color="green.700" fontSize="sm" mb={2}>
                 Your booking will be confirmed immediately and the amount will be deducted from your balance.
+              </Text>
+              <Text color="green.600" fontSize="xs">
+                ✓ Balance sufficient • ✓ Service available • ✓ Ready to proceed
               </Text>
             </Box>
           )}
@@ -443,13 +476,14 @@ function BookingConfirmation({
             Cancel
           </Button>
           <Button
-            colorPalette={hasInsufficientBalance ? "red" : "green"}
+            colorPalette={hasInsufficientBalance || showBalanceWarning ? "red" : "green"}
             onClick={handleConfirmClick}
             loading={isBooking}
             loadingText="Processing Booking..."
             disabled={isBooking}
+            _hover={hasInsufficientBalance || showBalanceWarning ? { bg: 'red.600' } : { bg: 'green.600' }}
           >
-            {hasInsufficientBalance ? 'Insufficient Balance' : 'Confirm Booking'}
+            {hasInsufficientBalance || showBalanceWarning ? 'Insufficient Balance' : 'Confirm Booking'}
           </Button>
         </HStack>
       </Box>
@@ -526,12 +560,23 @@ function ServiceCard({ service, onEdit, onDelete, onBook, isProvider = false }: 
           size="sm"
           colorPalette={service.isActive ? "green" : "gray"}
           w="full"
-          onClick={() => onBook?.(service)}
+          onClick={() => {
+            if (service.isActive && onBook) {
+              // Show immediate feedback when booking button is clicked
+              ToastService.info(
+                'Opening Booking',
+                `Preparing to book "${service.name}"...`,
+                { duration: 2000 }
+              );
+              onBook(service);
+            }
+          }}
           disabled={!service.isActive}
           aria-label={`Book ${service.name} for ${formatCurrency(service.price)}`}
-          _hover={service.isActive ? { bg: 'green.600' } : {}}
+          _hover={service.isActive ? { bg: 'green.600', transform: 'translateY(-1px)' } : {}}
+          transition="all 0.2s ease-in-out"
         >
-          {service.isActive ? 'Book Service' : 'Service Unavailable'}
+          {service.isActive ? '📅 Book Service' : '❌ Service Unavailable'}
         </Button>
       )}
     </Box>
@@ -1085,6 +1130,29 @@ export function ServicesPage() {
   const handleBookService = (service: Service) => {
     // Clear any previous booking errors
     setBookingError('');
+    
+    // Immediate validation and feedback
+    if (!service.isActive) {
+      ToastService.error(
+        'Service Unavailable',
+        `"${service.name}" is currently not available for booking.`,
+        { duration: 5000 }
+      );
+      return;
+    }
+
+    // Pre-validate balance and show warning if insufficient
+    if (currentBalance < service.price) {
+      ToastService.balanceValidationWarning(service.name, currentBalance, service.price);
+    }
+
+    // Show booking preparation feedback
+    ToastService.info(
+      'Booking Preparation',
+      `Preparing booking details for "${service.name}"...`,
+      { duration: 2000 }
+    );
+
     setBookingService(service);
     setIsBookingOpen(true);
   };
@@ -1092,36 +1160,65 @@ export function ServicesPage() {
   const confirmBooking = async () => {
     if (!bookingService) return;
 
+    // Pre-booking validation with immediate feedback
+    if (currentBalance < bookingService.price) {
+      setBookingError('Insufficient balance to complete booking');
+      ToastService.insufficientBalance(
+        bookingService.name, 
+        bookingService.price, 
+        currentBalance
+      );
+      return;
+    }
+
     setIsBooking(true);
     setBookingError('');
+
+    // Show immediate processing feedback
+    ToastService.info(
+      'Processing Booking',
+      `Booking "${bookingService.name}" for ${formatCurrency(bookingService.price)}...`,
+      { duration: 2000 }
+    );
 
     try {
       const bookingData: BookingCreateData = {
         serviceId: bookingService.id,
       };
 
-      // Create the booking
-      await bookingRepository.createBooking(bookingData);
+      // Create the booking with enhanced error handling
+      const booking = await bookingRepository.createBooking(bookingData);
       
-      // Show success toast with booking details
+      // Show comprehensive success feedback
       ToastService.bookingSuccess(bookingService.name, bookingService.price);
       
-      // Close the booking dialog
+      // Show balance update notification
+      const newBalance = currentBalance - bookingService.price;
+      ToastService.success(
+        'Balance Updated',
+        `Your new balance is ${formatCurrency(newBalance)}. Booking ID: ${booking.id.slice(-8)}`,
+        { duration: 6000 }
+      );
+      
+      // Close the booking dialog with success state
       setIsBookingOpen(false);
       setBookingService(null);
       
-      // Optional: Show additional success information
-      ToastService.info(
-        'Balance Updated',
-        `Your new balance is ${formatCurrency(currentBalance - bookingService.price)}`,
-        { duration: 4000 }
-      );
+      // Optional: Show booking confirmation details
+      setTimeout(() => {
+        ToastService.info(
+          'Booking Confirmed',
+          `You can view your booking details in "My Bookings" section`,
+          { duration: 5000 }
+        );
+      }, 1000);
       
     } catch (error) {
       console.error('Booking failed:', error);
       
-      // Handle different types of errors
+      // Enhanced error handling with specific user feedback
       let errorMessage = 'Failed to book service';
+      let shouldCloseDialog = false;
       
       if (error && typeof error === 'object' && 'type' in error) {
         const appError = error as any;
@@ -1136,19 +1233,26 @@ export function ServicesPage() {
             break;
           case ErrorType.AUTHENTICATION_ERROR:
             errorMessage = 'Please log in again to continue';
-            ToastService.error('Authentication Required', errorMessage);
+            ToastService.error('Authentication Required', errorMessage, { duration: 8000 });
+            shouldCloseDialog = true;
             break;
           case ErrorType.AUTHORIZATION_ERROR:
             errorMessage = 'You do not have permission to book this service';
-            ToastService.error('Access Denied', errorMessage);
+            ToastService.error('Access Denied', errorMessage, { duration: 8000 });
+            shouldCloseDialog = true;
             break;
           case ErrorType.NOT_FOUND:
             errorMessage = 'Service is no longer available';
-            ToastService.error('Service Unavailable', errorMessage);
+            ToastService.error('Service Unavailable', errorMessage, { duration: 8000 });
+            shouldCloseDialog = true;
             break;
           case ErrorType.NETWORK_ERROR:
-            errorMessage = 'Network error. Please check your connection';
-            ToastService.error('Connection Error', errorMessage);
+            errorMessage = 'Network error. Please check your connection and try again';
+            ToastService.error('Connection Error', errorMessage, { duration: 10000 });
+            break;
+          case ErrorType.CONFLICT_ERROR:
+            errorMessage = 'This service cannot be booked at the moment. Please try again later';
+            ToastService.error('Booking Conflict', errorMessage, { duration: 8000 });
             break;
           default:
             errorMessage = appError.message || 'An unexpected error occurred';
@@ -1160,8 +1264,15 @@ export function ServicesPage() {
         errorMessage = errorMsg;
       }
       
-      // Set error for the booking dialog
-      setBookingError(errorMessage);
+      // Set error for the booking dialog (if not closing it)
+      if (!shouldCloseDialog) {
+        setBookingError(errorMessage);
+      } else {
+        // Close dialog for critical errors
+        setIsBookingOpen(false);
+        setBookingService(null);
+        setBookingError('');
+      }
     } finally {
       setIsBooking(false);
     }

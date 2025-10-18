@@ -125,13 +125,46 @@ export class ToastService {
   }
 
   /**
-   * Show an insufficient balance toast
+   * Show an insufficient balance toast with enhanced details
    */
   static insufficientBalance(serviceName: string, required: number, available: number): string {
     const shortfall = required - available;
     return this.warning(
       'Insufficient Balance',
-      `You need €${shortfall.toFixed(2)} more to book "${serviceName}". Current balance: €${available.toFixed(2)}`,
+      `You need €${shortfall.toFixed(2)} more to book "${serviceName}". Current balance: €${available.toFixed(2)}. Please add funds to your account.`,
+      { duration: 10000 }
+    );
+  }
+
+  /**
+   * Show a booking processing toast
+   */
+  static bookingProcessing(serviceName: string, amount: number): string {
+    return this.info(
+      'Processing Booking',
+      `Booking "${serviceName}" for €${amount.toFixed(2)}... Please wait.`,
+      { duration: 3000 }
+    );
+  }
+
+  /**
+   * Show a balance validation warning
+   */
+  static balanceValidationWarning(serviceName: string, userBalance: number, servicePrice: number): string {
+    return this.warning(
+      'Balance Check Required',
+      `Please ensure you have sufficient balance (€${servicePrice.toFixed(2)}) to book "${serviceName}". Current balance: €${userBalance.toFixed(2)}`,
+      { duration: 6000 }
+    );
+  }
+
+  /**
+   * Show booking confirmation details
+   */
+  static bookingConfirmationDetails(bookingId: string, serviceName: string, providerName: string): string {
+    return this.success(
+      'Booking Details',
+      `Booking ID: ${bookingId} • Service: "${serviceName}" • Provider: ${providerName}`,
       { duration: 8000 }
     );
   }
