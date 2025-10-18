@@ -1,6 +1,6 @@
-import { Box, Container, ContainerProps } from '@chakra-ui/react';
-import { useResponsive } from '../../hooks/useResponsive';
-import { responsiveSpacing, containerSizes } from '../../utils/responsive';
+import { Container } from '@chakra-ui/react';
+import type { ContainerProps } from '@chakra-ui/react';
+import { responsiveSpacing } from '../../utils/responsive';
 
 interface ResponsiveContainerProps extends ContainerProps {
   variant?: 'page' | 'section' | 'card' | 'narrow';
@@ -18,11 +18,10 @@ export function ResponsiveContainer({
   maxW,
   ...props
 }: ResponsiveContainerProps) {
-  const { isMobile } = useResponsive();
 
   const getMaxWidth = () => {
     if (maxW) return maxW;
-    
+
     switch (variant) {
       case 'narrow':
         return { base: 'full', sm: 'md', md: 'lg' };
@@ -39,7 +38,7 @@ export function ResponsiveContainer({
   const getPadding = () => {
     const basePx = px || responsiveSpacing.md;
     const basePy = py || (variant === 'page' ? responsiveSpacing.lg : responsiveSpacing.md);
-    
+
     return {
       px: basePx,
       py: basePy

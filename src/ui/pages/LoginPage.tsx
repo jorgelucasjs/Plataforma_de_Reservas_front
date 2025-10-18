@@ -79,7 +79,7 @@ export function LoginPage() {
       {/* Display server validation errors */}
       <ValidationErrorDisplay
         errors={serverErrors}
-        generalError={generalError || error}
+        generalError={generalError || error || undefined}
         title="Please check your login details:"
       />
 

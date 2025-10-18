@@ -11,11 +11,11 @@ import {
 } from '@chakra-ui/react';
 import { MdFilterList, MdExpandMore, MdExpandLess } from 'react-icons/md';
 import { useResponsive } from '../../hooks/useResponsive';
-import { 
-  responsiveSpacing, 
-  touchTargets, 
+import {
+  responsiveSpacing,
+  touchTargets,
   cardSizes,
-  responsiveFontSizes 
+  responsiveFontSizes
 } from '../../utils/responsive';
 
 export interface FilterConfig {
@@ -129,14 +129,14 @@ export function FilterPanel({
         {/* Price Range */}
         {config.priceRange && (
           <Box>
-            <Text 
-              fontSize={responsiveFontSizes.sm} 
-              fontWeight="medium" 
+            <Text
+              fontSize={responsiveFontSizes.sm}
+              fontWeight="medium"
               mb={responsiveSpacing.sm}
             >
               Price Range ({config.priceRange.currency || '€'})
             </Text>
-            <Stack 
+            <Stack
               direction={{ base: 'column', sm: 'row' }}
               gap={responsiveSpacing.sm}
               align="center"
@@ -159,8 +159,8 @@ export function FilterPanel({
                   outlineOffset: '2px'
                 }}
               />
-              <Text 
-                fontSize={responsiveFontSizes.sm} 
+              <Text
+                fontSize={responsiveFontSizes.sm}
                 color="gray.500"
                 flexShrink={0}
               >
@@ -191,14 +191,14 @@ export function FilterPanel({
         {/* Date Range */}
         {config.dateRange && (
           <Box>
-            <Text 
-              fontSize={responsiveFontSizes.sm} 
-              fontWeight="medium" 
+            <Text
+              fontSize={responsiveFontSizes.sm}
+              fontWeight="medium"
               mb={responsiveSpacing.sm}
             >
               Date Range
             </Text>
-            <Stack 
+            <Stack
               direction={{ base: 'column', sm: 'row' }}
               gap={responsiveSpacing.sm}
               align="center"
@@ -219,8 +219,8 @@ export function FilterPanel({
                   outlineOffset: '2px'
                 }}
               />
-              <Text 
-                fontSize={responsiveFontSizes.sm} 
+              <Text
+                fontSize={responsiveFontSizes.sm}
                 color="gray.500"
                 flexShrink={0}
               >
@@ -250,7 +250,7 @@ export function FilterPanel({
         {config.status && (
           <Box>
             <Text fontSize="sm" fontWeight="medium" mb={2}>Status</Text>
-            <Box as="select" 
+            <select
               value={Array.isArray(filters.status) ? filters.status[0] || '' : filters.status}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleFilterChange('status', e.target.value)}
               style={{
@@ -267,7 +267,7 @@ export function FilterPanel({
                   {option.label}
                 </option>
               ))}
-            </Box>
+            </select>
           </Box>
         )}
 
@@ -276,7 +276,7 @@ export function FilterPanel({
           <Box key={filter.key}>
             <Text fontSize="sm" fontWeight="medium" mb={2}>{filter.label}</Text>
             {filter.type === 'select' && filter.options ? (
-              <Box as="select"
+              <select
                 value={filters[filter.key]}
                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleFilterChange(filter.key, e.target.value)}
                 style={{
@@ -293,7 +293,7 @@ export function FilterPanel({
                     {option.label}
                   </option>
                 ))}
-              </Box>
+              </select>
             ) : filter.type === 'number' ? (
               <Input
                 type="number"
@@ -326,7 +326,7 @@ export function FilterPanel({
           <Box>
             <Text fontSize="sm" fontWeight="medium" mb={2}>Sort By</Text>
             <HStack>
-              <Box as="select"
+              <select
                 value={filters.sortBy}
                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleFilterChange('sortBy', e.target.value)}
                 style={{
@@ -342,8 +342,8 @@ export function FilterPanel({
                     {option.label}
                   </option>
                 ))}
-              </Box>
-              <Box as="select"
+              </select>
+              <select
                 value={filters.sortOrder}
                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleFilterChange('sortOrder', e.target.value)}
                 style={{
@@ -356,21 +356,21 @@ export function FilterPanel({
               >
                 <option value="asc">Ascending</option>
                 <option value="desc">Descending</option>
-              </Box>
+              </select>
             </HStack>
           </Box>
         )}
 
         {/* Filter Actions */}
-        <Stack 
+        <Stack
           direction={{ base: 'column', sm: 'row' }}
-          justifyContent="flex-end" 
+          justifyContent="flex-end"
           pt={responsiveSpacing.sm}
           gap={responsiveSpacing.sm}
         >
-          <Button 
-            size={responsiveSize} 
-            variant="outline" 
+          <Button
+            size={responsiveSize}
+            variant="outline"
             onClick={handleClear}
             disabled={!hasActiveFilters}
             minH={isTouch ? touchTargets.comfortable : 'auto'}
@@ -385,9 +385,9 @@ export function FilterPanel({
             Clear
           </Button>
           {showApplyButton && (
-            <Button 
-              size={responsiveSize} 
-              colorPalette="blue" 
+            <Button
+              size={responsiveSize}
+              colorPalette="blue"
               onClick={onApplyFilters}
               minH={isTouch ? touchTargets.comfortable : 'auto'}
               w={{ base: 'full', sm: 'auto' }}

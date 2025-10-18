@@ -13,11 +13,11 @@ import type { Service } from '../../types/service';
 import { formatCurrency, formatDate, truncateText } from '../../services/memoizationService';
 import { useResponsive } from '../../hooks/useResponsive';
 import { useRenderPerformance } from '../../hooks/usePerformance';
-import { 
-  cardSizes, 
-  touchTargets, 
+import {
+  cardSizes,
+  touchTargets,
   responsiveSpacing,
-  responsiveFontSizes 
+  responsiveFontSizes
 } from '../../utils/responsive';
 
 interface ServiceCardProps {
@@ -29,11 +29,11 @@ interface ServiceCardProps {
   isLoading?: boolean;
 }
 
-export const ServiceCard = memo(function ServiceCard({ 
-  service, 
-  onEdit, 
-  onDelete, 
-  onBook, 
+export const ServiceCard = memo(function ServiceCard({
+  service,
+  onEdit,
+  onDelete,
+  onBook,
   isProvider = false,
   isLoading = false
 }: ServiceCardProps) {
@@ -47,15 +47,15 @@ export const ServiceCard = memo(function ServiceCard({
       borderRadius={cardSizes.borderRadius}
       p={cardSizes.padding}
       bg="white"
-      _hover={{ 
-        shadow: 'md', 
+      _hover={{
+        shadow: 'md',
         borderColor: 'blue.300',
         transform: 'translateY(-2px)'
       }}
       transition="all 0.2s ease-in-out"
       role="article"
       tabIndex={0}
-      _focus={{ 
+      _focus={{
         shadow: 'outline',
         outline: '2px solid',
         outlineColor: 'blue.500',
@@ -72,25 +72,33 @@ export const ServiceCard = memo(function ServiceCard({
     >
       <Flex mb={responsiveSpacing.sm} align="start" gap={2}>
         <Box flex={1} minW={0}>
-          <Heading 
-            size={responsiveFontSizes.md} 
-            mb={1} 
+          <Heading
+            size={responsiveFontSizes.md}
+            mb={1}
             color="gray.800"
-            noOfLines={2}
             lineHeight="shorter"
+            overflow="hidden"
+            textOverflow="ellipsis"
+            display="-webkit-box"
+            style={{
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical'
+            }}
           >
             {service.name}
           </Heading>
-          <Text 
-            fontSize={responsiveFontSizes.xs} 
+          <Text
+            fontSize={responsiveFontSizes.xs}
             color="gray.500"
-            noOfLines={1}
+            overflow="hidden"
+            textOverflow="ellipsis"
+            whiteSpace="nowrap"
           >
             {isProvider ? `Created ${formatDate(service.createdAt)}` : `By ${service.providerName}`}
           </Text>
         </Box>
-        <Badge 
-          colorPalette={service.isActive ? 'green' : 'gray'} 
+        <Badge
+          colorPalette={service.isActive ? 'green' : 'gray'}
           variant="subtle"
           size={isMobile ? 'md' : 'sm'}
           flexShrink={0}
@@ -99,28 +107,34 @@ export const ServiceCard = memo(function ServiceCard({
         </Badge>
       </Flex>
 
-      <Text 
-        color="gray.600" 
-        mb={responsiveSpacing.sm} 
+      <Text
+        color="gray.600"
+        mb={responsiveSpacing.sm}
         lineHeight="1.5"
         fontSize={responsiveFontSizes.sm}
-        noOfLines={{ base: 3, md: 4 }}
         flex={1}
+        overflow="hidden"
+        textOverflow="ellipsis"
+        display="-webkit-box"
+        style={{
+          WebkitLineClamp: isMobile ? 3 : 4,
+          WebkitBoxOrient: 'vertical'
+        }}
       >
         {truncateText(service.description, isMobile ? 120 : 150)}
       </Text>
-      
-      <Text 
-        fontSize={responsiveFontSizes.xl} 
-        fontWeight="bold" 
-        color="blue.600" 
+
+      <Text
+        fontSize={responsiveFontSizes.xl}
+        fontWeight="bold"
+        color="blue.600"
         mb={responsiveSpacing.md}
       >
         {formatCurrency(service.price)}
       </Text>
 
       {isProvider ? (
-        <HStack 
+        <HStack
           gap={responsiveSpacing.sm}
           flexDirection={{ base: 'column', sm: 'row' }}
           w="full"
@@ -187,8 +201,8 @@ export const ServiceCard = memo(function ServiceCard({
           disabled={!service.isActive || isLoading}
           aria-label={`Book ${service.name} for ${formatCurrency(service.price)}`}
           minH={isTouch ? touchTargets.comfortable : 'auto'}
-          _hover={service.isActive ? { 
-            bg: 'green.600', 
+          _hover={service.isActive ? {
+            bg: 'green.600',
             transform: 'translateY(-1px)',
             shadow: 'md'
           } : {}}

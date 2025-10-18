@@ -3,17 +3,12 @@ import {
     Box,
     Input,
     Textarea,
-    Select,
     VStack,
-    FormControl,
-    FormLabel,
-    FormHelperText,
-    FormErrorMessage,
+    Text,
     type InputProps,
     type TextareaProps,
-    type SelectProps,
 } from '@chakra-ui/react';
-import { useFormField } from '../../hooks/useAccessibility';
+
 import { useResponsive } from '../../hooks/useResponsive';
 import { touchTargets } from '../../utils/responsive';
 
@@ -38,10 +33,14 @@ interface AccessibleTextareaProps extends TextareaProps, BaseFormFieldProps {
     type: 'textarea';
 }
 
-interface AccessibleSelectProps extends SelectProps, BaseFormFieldProps {
+interface AccessibleSelectProps extends BaseFormFieldProps {
     type: 'select';
     options: Array<{ value: string; label: string; disabled?: boolean }>;
     placeholder?: string;
+    value?: string;
+    onChange?: (event: React.ChangeEvent<HTMLSelectElement>) => void;
+    name?: string;
+    id?: string;
 }
 
 type AccessibleFormFieldProps =
@@ -66,23 +65,20 @@ export const AccessibleFormField = forwardRef<
     ...props
 }, ref) => {
     const { isTouch } = useResponsive();
-    const {
-        fieldProps,
-        labelProps,
-        descriptionProps,
-        errorProps
-    } = useFormField(props.id, {
-        label,
-        description,
-        error,
-        required
-    });
+    
+    // Generate unique IDs for accessibility
+    const fieldId = (props as any).id || `field-${Math.random().toString(36).substr(2, 9)}`;
+    const descriptionId = description ? `${fieldId}-description` : undefined;
+    const errorId = error ? `${fieldId}-error` : undefined;
 
     const responsiveSize = isTouch ? 'lg' : 'md';
 
     const commonFieldProps = {
-        ...fieldProps,
-        size: responsiveSize,
+        id: fieldId,
+        'aria-describedby': [descriptionId, errorId].filter(Boolean).join(' ') || undefined,
+        'aria-invalid': !!error,
+        'aria-required': required,
+        size: responsiveSize as any,
         minH: isTouch ? touchTargets.comfortable : undefined,
         fontSize: { base: '16px', md: 'md' }, // Prevent zoom on iOS
         _focus: {
@@ -92,10 +88,16 @@ export const AccessibleFormField = forwardRef<
             outlineColor: 'blue.500',
             outlineOffset: '2px'
         },
-        _invalid: {
+        ...(error && {
             borderColor: 'red.500',
-            boxShadow: '0 0 0 2px var(--chakra-colors-red-200)'
-        }
+            _focus: {
+                borderColor: 'red.500',
+                boxShadow: '0 0 0 2px var(--chakra-colors-red-200)',
+                outline: '2px solid',
+                outlineColor: 'red.500',
+                outlineOffset: '2px'
+            }
+        })
     };
 
     const renderField = () => {
@@ -113,10 +115,23 @@ export const AccessibleFormField = forwardRef<
         if (type === 'select') {
             const selectProps = props as AccessibleSelectProps;
             return (
-                <Select
+                <select
                     ref={ref as React.Ref<HTMLSelectElement>}
-                    {...commonFieldProps}
-                    {...selectProps}
+                    id={fieldId}
+                    aria-describedby={[descriptionId, errorId].filter(Boolean).join(' ') || undefined}
+                    aria-invalid={!!error}
+                    aria-required={required}
+                    value={selectProps.value}
+                    onChange={selectProps.onChange}
+                    name={selectProps.name}
+                    style={{
+                        padding: isTouch ? '12px' : '8px',
+                        borderRadius: '6px',
+                        border: error ? '2px solid #e53e3e' : '2px solid #e2e8f0',
+                        backgroundColor: 'white',
+                        width: '100%',
+                        fontSize: '16px'
+                    }}
                 >
                     {selectProps.placeholder && (
                         <option value="" disabled>
@@ -132,7 +147,7 @@ export const AccessibleFormField = forwardRef<
                             {option.label}
                         </option>
                     ))}
-                </Select>
+                </select>
             );
         }
 
@@ -147,49 +162,53 @@ export const AccessibleFormField = forwardRef<
     };
 
     return (
-        <FormControl isInvalid={!!error} isRequired={required}>
+        <Box>
             <VStack align="stretch" gap={2}>
-                <FormLabel
-                    {...labelProps}
+                <label
+                    htmlFor={fieldId}
                     className={hideLabel ? 'sr-only' : undefined}
-                    fontSize={isTouch ? 'md' : 'sm'}
-                    fontWeight="medium"
-                    color="gray.700"
-                    mb={0}
+                    style={{
+                        fontSize: isTouch ? '16px' : '14px',
+                        fontWeight: '500',
+                        color: '#2d3748',
+                        marginBottom: 0,
+                        display: 'block'
+                    }}
                 >
                     {label}
                     {required && (
-                        <Box as="span" color="red.500" ml={1} aria-label="required">
+                        <span style={{ color: '#e53e3e', marginLeft: '4px' }} aria-label="required">
                             *
-                        </Box>
+                        </span>
                     )}
-                </FormLabel>
+                </label>
 
                 {renderField()}
 
-                {description && descriptionProps && (
-                    <FormHelperText
-                        {...descriptionProps}
+                {description && (
+                    <Text
+                        id={descriptionId}
                         fontSize="sm"
                         color="gray.600"
                         mt={1}
                     >
                         {description}
-                    </FormHelperText>
+                    </Text>
                 )}
 
-                {error && errorProps && (
-                    <FormErrorMessage
-                        {...errorProps}
+                {error && (
+                    <Text
+                        id={errorId}
                         fontSize="sm"
                         color="red.600"
                         mt={1}
+                        role="alert"
                     >
                         {error}
-                    </FormErrorMessage>
+                    </Text>
                 )}
             </VStack>
-        </FormControl>
+        </Box>
     );
 });
 

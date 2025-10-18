@@ -1,7 +1,7 @@
 // Performance testing utilities for development and debugging
 
 import { performanceMonitor } from './performance';
-import { cacheService, staticDataCache, userDataCache } from '../services/cacheService';
+import { cacheService } from '../services/cacheService';
 import { memoizationService } from '../services/memoizationService';
 
 interface PerformanceTestResult {
@@ -424,4 +424,4 @@ if (import.meta.env.DEV) {
   console.log('- new PerformanceBenchmark(name)');
 }
 
-export { PerformanceTester, PerformanceTestSuite, PerformanceTest, PerformanceTestResult };
+export { PerformanceTester };

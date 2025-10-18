@@ -43,7 +43,7 @@ export function FormField({
           )}
         </Text>
       )}
-      
+
       <Box position="relative">
         {React.cloneElement(children, {
           ...(hasError && { borderColor: 'red.500' }),
@@ -51,7 +51,7 @@ export function FormField({
           ...(!hasError && !hasSuccess && { borderColor: 'gray.300' }),
           ...(showValidationIcon && (hasError || hasSuccess) && { pr: '40px' }),
         })}
-        
+
         {showValidationIcon && (hasError || hasSuccess) && (
           <Box
             position="absolute"
@@ -75,7 +75,7 @@ export function FormField({
             </Text>
           </HStack>
         )}
-        
+
         {success && !error && (
           <HStack gap={1} align="center">
             <HiCheckCircle color="green" size="14px" />
@@ -84,7 +84,7 @@ export function FormField({
             </Text>
           </HStack>
         )}
-        
+
         {helperText && !error && !success && (
           <Text color="gray.500" fontSize="sm">
             {helperText}

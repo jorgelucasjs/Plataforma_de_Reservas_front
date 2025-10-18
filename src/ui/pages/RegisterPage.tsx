@@ -103,7 +103,7 @@ export function RegisterPage() {
       {/* Display server validation errors */}
       <ValidationErrorDisplay
         errors={serverErrors}
-        generalError={generalError || error}
+        generalError={generalError || error || undefined}
         title="Please fix the following issues:"
       />
 

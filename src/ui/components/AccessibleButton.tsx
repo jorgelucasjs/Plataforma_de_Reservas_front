@@ -1,5 +1,6 @@
 import { forwardRef } from 'react';
-import { Button, ButtonProps } from '@chakra-ui/react';
+import { Button } from '@chakra-ui/react';
+import type { ButtonProps } from '@chakra-ui/react';
 import { useResponsive } from '../../hooks/useResponsive';
 import { touchTargets } from '../../utils/responsive';
 import { createButtonAriaAttributes } from '../../utils/accessibility';
@@ -60,7 +61,7 @@ export const AccessibleButton = forwardRef<HTMLButtonElement, AccessibleButtonPr
         event.preventDefault();
         event.currentTarget.click();
       }
-      
+
       onKeyDown?.(event);
     };
 

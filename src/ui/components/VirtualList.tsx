@@ -16,7 +16,7 @@ interface VirtualListProps<T> {
   measureName?: string;
 }
 
-export const VirtualList = memo(function VirtualList<T>({
+function VirtualListComponent<T>({
   items,
   itemHeight,
   containerHeight,
@@ -29,7 +29,7 @@ export const VirtualList = memo(function VirtualList<T>({
 }: VirtualListProps<T>) {
   const [scrollTop, setScrollTop] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
-  
+
   const { visibleCount, shouldVirtualize } = useListPerformance(
     items,
     itemHeight,
@@ -48,7 +48,7 @@ export const VirtualList = memo(function VirtualList<T>({
       start + visibleCount + overscan,
       items.length
     );
-    
+
     return {
       start: Math.max(0, start - overscan),
       end,
@@ -128,7 +128,9 @@ export const VirtualList = memo(function VirtualList<T>({
       </Box>
     </Box>
   );
-});
+}
+
+export const VirtualList = memo(VirtualListComponent) as typeof VirtualListComponent;
 
 // Hook for easy virtual list usage
 export function useVirtualList<T>(
@@ -142,9 +144,9 @@ export function useVirtualList<T>(
   } = {}
 ) {
   const { overscan = 5, threshold = 50, measureName } = options;
-  
+
   const shouldVirtualize = items.length > threshold;
-  
+
   const { visibleCount, bufferSize } = useListPerformance(
     items,
     itemHeight,
@@ -203,12 +205,12 @@ export const VirtualGrid = memo(function VirtualGrid<T>({
   measureName = 'virtual_grid',
 }: VirtualGridProps<T>) {
   const [scrollTop, setScrollTop] = useState(0);
-  
+
   // Calculate columns and rows
   const columnsPerRow = Math.floor((containerWidth + gap) / (itemWidth + gap));
   const totalRows = Math.ceil(items.length / columnsPerRow);
   const rowHeight = itemHeight + gap;
-  
+
   const { shouldVirtualize } = useListPerformance(
     items,
     rowHeight,
@@ -227,7 +229,7 @@ export const VirtualGrid = memo(function VirtualGrid<T>({
       startRow + Math.ceil(containerHeight / rowHeight) + overscan,
       totalRows
     );
-    
+
     return {
       start: Math.max(0, startRow - overscan),
       end: endRow,
@@ -238,7 +240,7 @@ export const VirtualGrid = memo(function VirtualGrid<T>({
   const visibleItems = useMemo(() => {
     const startIndex = visibleRange.start * columnsPerRow;
     const endIndex = Math.min(visibleRange.end * columnsPerRow, items.length);
-    
+
     return items
       .slice(startIndex, endIndex)
       .map((item, relativeIndex) => ({

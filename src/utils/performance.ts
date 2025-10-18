@@ -1,5 +1,7 @@
 // Performance monitoring and optimization utilities
 
+import React from "react";
+
 interface PerformanceMetric {
   name: string;
   value: number;

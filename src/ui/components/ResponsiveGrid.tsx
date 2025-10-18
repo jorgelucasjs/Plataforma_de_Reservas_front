@@ -1,5 +1,5 @@
-import { Box, SimpleGrid, SimpleGridProps } from '@chakra-ui/react';
-import { useResponsive } from '../../hooks/useResponsive';
+import { SimpleGrid } from '@chakra-ui/react';
+import type { SimpleGridProps } from '@chakra-ui/react';
 import { gridColumns } from '../../utils/responsive';
 
 interface ResponsiveGridProps extends Omit<SimpleGridProps, 'columns'> {
@@ -19,7 +19,6 @@ export function ResponsiveGrid({
   gap = { base: 4, md: 6 },
   ...props
 }: ResponsiveGridProps) {
-  const { isMobile } = useResponsive();
 
   // Use minChildWidth if provided, otherwise use predefined grid columns
   const columns = minChildWidth ? undefined : gridColumns[type];
@@ -73,10 +72,10 @@ export function DashboardGrid({ children, ...props }: Omit<ResponsiveGridProps, 
 /**
  * Auto-sizing grid that adjusts based on content width
  */
-export function AutoGrid({ 
-  minChildWidth = '280px', 
-  children, 
-  ...props 
+export function AutoGrid({
+  minChildWidth = '280px',
+  children,
+  ...props
 }: ResponsiveGridProps) {
   return (
     <ResponsiveGrid minChildWidth={minChildWidth} {...props}>

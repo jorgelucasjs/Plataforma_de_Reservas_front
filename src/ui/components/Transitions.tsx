@@ -7,7 +7,7 @@
 
 import { Box, Flex } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
-import { useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 
 // Animation keyframes
 const slideInFromRight = keyframes`
