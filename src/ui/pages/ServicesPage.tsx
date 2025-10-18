@@ -15,16 +15,19 @@ import {
   Flex,
   Spacer,
 } from '@chakra-ui/react';
-import { MdEdit, MdDelete, MdAdd, MdSearch, MdFilterList } from 'react-icons/md';
+import { MdEdit, MdDelete, MdAdd, MdSearch, MdFilterList, MdCheckCircle, MdError } from 'react-icons/md';
 import { useAuthUiState } from '../../stores/authStore';
 import { useServiceUiState } from '../../stores/serviceStore';
 import { useUserUiState } from '../../stores/userStore';
 import { serviceRepository } from '../../repositories/serviceRepository';
 import { bookingRepository } from '../../repositories/bookingRepository';
 import { ValidationService, type ServiceFormData } from '../../services/validationService';
+import { ToastService, useToastState } from '../../services/toastService';
+import { ToastContainer } from '../components/Toast';
 import { formatCurrency, formatDate, truncateText } from '../../utils/formatters';
 import type { Service, ServiceCreateData, ServiceUpdateData } from '../../types/service';
 import type { BookingCreateData } from '../../types/booking';
+import { ErrorType } from '../../types/error';
 
 interface ServiceFormProps {
   isOpen: boolean;
@@ -290,6 +293,7 @@ interface BookingConfirmationProps {
   onConfirm: () => void;
   isBooking: boolean;
   userBalance: number;
+  bookingError?: string;
 }
 
 function BookingConfirmation({ 
@@ -298,12 +302,23 @@ function BookingConfirmation({
   service, 
   onConfirm, 
   isBooking, 
-  userBalance 
+  userBalance,
+  bookingError
 }: BookingConfirmationProps) {
   if (!isOpen || !service) return null;
 
   const hasInsufficientBalance = userBalance < service.price;
   const remainingBalance = userBalance - service.price;
+  const shortfall = hasInsufficientBalance ? service.price - userBalance : 0;
+
+  // Show balance warning when user tries to book with insufficient balance
+  const handleConfirmClick = () => {
+    if (hasInsufficientBalance) {
+      ToastService.insufficientBalance(service.name, service.price, userBalance);
+      return;
+    }
+    onConfirm();
+  };
 
   return (
     <Box
@@ -325,37 +340,49 @@ function BookingConfirmation({
         maxW="md"
         w="full"
         mx={4}
+        maxH="90vh"
+        overflowY="auto"
       >
-        <Heading size="md" mb={4}>Confirm Booking</Heading>
+        <HStack mb={4} align="center">
+          <Heading size="md" flex="1">Confirm Booking</Heading>
+          {isBooking && (
+            <HStack gap={2} color="blue.600">
+              <Spinner size="sm" />
+              <Text fontSize="sm">Processing...</Text>
+            </HStack>
+          )}
+        </HStack>
         
         <VStack gap={4} align="stretch" mb={6}>
           <Box>
             <Text fontWeight="medium" mb={2}>Service Details</Text>
-            <Box p={3} bg="gray.50" borderRadius="md">
-              <Text fontWeight="bold">{service.name}</Text>
-              <Text fontSize="sm" color="gray.600" mb={2}>
-                By {service.providerName}
+            <Box p={4} bg="gray.50" borderRadius="md" border="1px" borderColor="gray.200">
+              <Text fontWeight="bold" fontSize="lg" mb={1}>{service.name}</Text>
+              <Text fontSize="sm" color="gray.600" mb={3}>
+                Provider: {service.providerName}
               </Text>
-              <Text fontSize="lg" fontWeight="bold" color="blue.600">
+              <Text fontSize="xl" fontWeight="bold" color="blue.600">
                 {formatCurrency(service.price)}
               </Text>
             </Box>
           </Box>
 
           <Box>
-            <Text fontWeight="medium" mb={2}>Balance Information</Text>
-            <VStack gap={2} align="stretch">
+            <Text fontWeight="medium" mb={2}>Payment Summary</Text>
+            <VStack gap={2} align="stretch" p={4} bg="gray.50" borderRadius="md" border="1px" borderColor="gray.200">
               <Flex justifyContent="space-between">
                 <Text>Current Balance:</Text>
-                <Text fontWeight="bold">{formatCurrency(userBalance)}</Text>
+                <Text fontWeight="bold" color={userBalance > 0 ? 'green.600' : 'red.600'}>
+                  {formatCurrency(userBalance)}
+                </Text>
               </Flex>
               <Flex justifyContent="space-between">
                 <Text>Service Cost:</Text>
                 <Text fontWeight="bold" color="red.600">-{formatCurrency(service.price)}</Text>
               </Flex>
-              <Box borderTop="1px" borderColor="gray.200" pt={2}>
+              <Box borderTop="1px" borderColor="gray.300" pt={2}>
                 <Flex justifyContent="space-between">
-                  <Text fontWeight="bold">Remaining Balance:</Text>
+                  <Text fontWeight="bold">After Booking:</Text>
                   <Text 
                     fontWeight="bold" 
                     color={hasInsufficientBalance ? 'red.600' : 'green.600'}
@@ -368,27 +395,61 @@ function BookingConfirmation({
           </Box>
 
           {hasInsufficientBalance && (
-            <Box p={4} bg="red.50" border="1px" borderColor="red.200" borderRadius="md" color="red.700">
-              <Text fontWeight="bold">Insufficient Balance</Text>
-              <Text fontSize="sm">
-                You need {formatCurrency(service.price - userBalance)} more to book this service.
+            <Box p={4} bg="red.50" border="1px" borderColor="red.200" borderRadius="md">
+              <HStack gap={2} mb={2}>
+                <MdError color="red" />
+                <Text fontWeight="bold" color="red.700">Insufficient Balance</Text>
+              </HStack>
+              <Text color="red.700" fontSize="sm" mb={2}>
+                You need {formatCurrency(shortfall)} more to book this service.
+              </Text>
+              <Text color="red.600" fontSize="xs">
+                Please add funds to your account or choose a different service.
+              </Text>
+            </Box>
+          )}
+
+          {bookingError && (
+            <Box p={4} bg="red.50" border="1px" borderColor="red.200" borderRadius="md">
+              <HStack gap={2} mb={2}>
+                <MdError color="red" />
+                <Text fontWeight="bold" color="red.700">Booking Error</Text>
+              </HStack>
+              <Text color="red.700" fontSize="sm">
+                {bookingError}
+              </Text>
+            </Box>
+          )}
+
+          {!hasInsufficientBalance && !bookingError && (
+            <Box p={4} bg="green.50" border="1px" borderColor="green.200" borderRadius="md">
+              <HStack gap={2} mb={2}>
+                <MdCheckCircle color="green" />
+                <Text fontWeight="bold" color="green.700">Ready to Book</Text>
+              </HStack>
+              <Text color="green.700" fontSize="sm">
+                Your booking will be confirmed immediately and the amount will be deducted from your balance.
               </Text>
             </Box>
           )}
         </VStack>
 
         <HStack justifyContent="flex-end" gap={3}>
-          <Button variant="outline" onClick={onClose}>
+          <Button 
+            variant="outline" 
+            onClick={onClose}
+            disabled={isBooking}
+          >
             Cancel
           </Button>
           <Button
-            colorPalette="green"
-            onClick={onConfirm}
+            colorPalette={hasInsufficientBalance ? "red" : "green"}
+            onClick={handleConfirmClick}
             loading={isBooking}
-            loadingText="Booking..."
-            disabled={hasInsufficientBalance}
+            loadingText="Processing Booking..."
+            disabled={isBooking}
           >
-            Confirm Booking
+            {hasInsufficientBalance ? 'Insufficient Balance' : 'Confirm Booking'}
           </Button>
         </HStack>
       </Box>
@@ -412,8 +473,11 @@ function ServiceCard({ service, onEdit, onDelete, onBook, isProvider = false }: 
       borderRadius="lg"
       p={4}
       bg="white"
-      _hover={{ shadow: 'md' }}
+      _hover={{ shadow: 'md', borderColor: 'blue.300' }}
       transition="all 0.2s"
+      role="article"
+      tabIndex={0}
+      _focus={{ shadow: 'outline', borderColor: 'blue.500' }}
     >
       <Flex mb={3}>
         <Box>
@@ -460,12 +524,14 @@ function ServiceCard({ service, onEdit, onDelete, onBook, isProvider = false }: 
       ) : (
         <Button
           size="sm"
-          colorPalette="green"
+          colorPalette={service.isActive ? "green" : "gray"}
           w="full"
           onClick={() => onBook?.(service)}
           disabled={!service.isActive}
+          aria-label={`Book ${service.name} for ${formatCurrency(service.price)}`}
+          _hover={service.isActive ? { bg: 'green.600' } : {}}
         >
-          Book Service
+          {service.isActive ? 'Book Service' : 'Service Unavailable'}
         </Button>
       )}
     </Box>
@@ -505,7 +571,7 @@ function SearchAndFilters({
       <HStack mb={4}>
         <Box position="relative" flex="1">
           <Input
-            placeholder="Search services..."
+            placeholder="Search services... (Ctrl+K)"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             pr="40px"
@@ -610,12 +676,15 @@ interface ClientServicesViewProps {
 }
 
 function ClientServicesView({ onBookService }: ClientServicesViewProps) {
-  const { services, isLoading, error } = useServiceUiState();
+  const { services, isLoading, error, total, hasMore } = useServiceUiState();
   const [searchQuery, setSearchQuery] = useState('');
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(0);
   const [sortBy, setSortBy] = useState<'name' | 'price' | 'createdAt'>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isFiltering, setIsFiltering] = useState(false);
+  const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
 
   // Load services when component mounts
   useEffect(() => {
@@ -632,12 +701,59 @@ function ClientServicesView({ onBookService }: ClientServicesViewProps) {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    // Debounce search
-    const timeoutId = setTimeout(() => {
-      applyFilters(query, minPrice, maxPrice, sortBy, sortOrder);
-    }, 500);
-    return () => clearTimeout(timeoutId);
   };
+
+  // Debounced search effect
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchQuery !== undefined) {
+        applyFilters(searchQuery, minPrice, maxPrice, sortBy, sortOrder);
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Ctrl/Cmd + K to focus search
+      if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+        event.preventDefault();
+        const searchInput = document.querySelector('input[placeholder="Search services... (Ctrl+K)"]') as HTMLInputElement;
+        if (searchInput) {
+          searchInput.focus();
+        }
+      }
+      
+      // Escape to clear search
+      if (event.key === 'Escape' && searchQuery) {
+        setSearchQuery('');
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [searchQuery]);
+
+  // Infinite scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + document.documentElement.scrollTop >= 
+        document.documentElement.offsetHeight - 1000 && // Load when 1000px from bottom
+        hasMore && 
+        !isLoadingMore && 
+        !isLoading && 
+        !isFiltering
+      ) {
+        loadMoreServices();
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hasMore, isLoadingMore, isLoading, isFiltering]);
 
   const handlePriceChange = (min: number, max: number) => {
     setMinPrice(min);
@@ -660,10 +776,13 @@ function ClientServicesView({ onBookService }: ClientServicesViewProps) {
       offset: 0,
     };
 
+    setIsFiltering(true);
     try {
       await serviceRepository.applyFilters(filterParams);
     } catch (error) {
       console.error('Failed to apply filters:', error);
+    } finally {
+      setIsFiltering(false);
     }
   };
 
@@ -674,10 +793,29 @@ function ClientServicesView({ onBookService }: ClientServicesViewProps) {
     setSortBy('createdAt');
     setSortOrder('desc');
     
+    setIsFiltering(true);
     try {
       await serviceRepository.clearFilters();
     } catch (error) {
       console.error('Failed to clear filters:', error);
+    } finally {
+      setIsFiltering(false);
+    }
+  };
+
+  const loadMoreServices = async () => {
+    if (isLoadingMore || !hasMore) return;
+    
+    setIsLoadingMore(true);
+    setLoadMoreError(null);
+    try {
+      await serviceRepository.loadMoreServices();
+    } catch (error) {
+      console.error('Failed to load more services:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load more services';
+      setLoadMoreError(errorMessage);
+    } finally {
+      setIsLoadingMore(false);
     }
   };
 
@@ -705,9 +843,14 @@ function ClientServicesView({ onBookService }: ClientServicesViewProps) {
         </Box>
       )}
 
-      {isLoading ? (
+      {(isLoading || isFiltering) ? (
         <Center py={10}>
-          <Spinner size="lg" />
+          <VStack gap={4}>
+            <Spinner size="lg" />
+            <Text color="gray.500">
+              {isFiltering ? 'Applying filters...' : 'Loading services...'}
+            </Text>
+          </VStack>
         </Center>
       ) : services.length === 0 ? (
         <Center py={10}>
@@ -724,9 +867,17 @@ function ClientServicesView({ onBookService }: ClientServicesViewProps) {
         </Center>
       ) : (
         <>
-          <Text fontSize="sm" color="gray.600" mb={4}>
-            Showing {services.length} service{services.length !== 1 ? 's' : ''}
-          </Text>
+          <Flex align="center" justify="space-between" mb={4}>
+            <Text fontSize="sm" color="gray.600">
+              Showing {services.length} of {total} service{total !== 1 ? 's' : ''}
+            </Text>
+            {isFiltering && (
+              <HStack gap={2}>
+                <Spinner size="sm" />
+                <Text fontSize="sm" color="blue.600">Updating...</Text>
+              </HStack>
+            )}
+          </Flex>
           <Grid templateColumns="repeat(auto-fill, minmax(300px, 1fr))" gap={6}>
             {services.map((service) => (
               <ServiceCard
@@ -737,6 +888,37 @@ function ClientServicesView({ onBookService }: ClientServicesViewProps) {
               />
             ))}
           </Grid>
+          
+          {/* Pagination Controls */}
+          {hasMore && (
+            <Center mt={8}>
+              <VStack gap={4}>
+                {loadMoreError && (
+                  <Box p={3} bg="red.50" border="1px" borderColor="red.200" borderRadius="md" color="red.700">
+                    <Text fontSize="sm">{loadMoreError}</Text>
+                  </Box>
+                )}
+                <Button
+                  colorPalette="blue"
+                  variant="outline"
+                  onClick={loadMoreServices}
+                  loading={isLoadingMore}
+                  loadingText="Loading more services..."
+                  size="lg"
+                >
+                  Load More Services
+                </Button>
+              </VStack>
+            </Center>
+          )}
+          
+          {!hasMore && services.length > 0 && (
+            <Center mt={8}>
+              <Text fontSize="sm" color="gray.500">
+                You've reached the end of the list
+              </Text>
+            </Center>
+          )}
         </>
       )}
     </Box>
@@ -893,14 +1075,16 @@ function ProviderServicesView() {
 export function ServicesPage() {
   const { user } = useAuthUiState();
   const { currentBalance } = useUserUiState();
+  const { toasts, removeToast } = useToastState();
   
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [bookingService, setBookingService] = useState<Service | null>(null);
   const [isBooking, setIsBooking] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [bookingError, setBookingError] = useState<string>('');
 
   const handleBookService = (service: Service) => {
+    // Clear any previous booking errors
+    setBookingError('');
     setBookingService(service);
     setIsBookingOpen(true);
   };
@@ -909,26 +1093,84 @@ export function ServicesPage() {
     if (!bookingService) return;
 
     setIsBooking(true);
-    setErrorMessage('');
+    setBookingError('');
 
     try {
       const bookingData: BookingCreateData = {
         serviceId: bookingService.id,
       };
 
+      // Create the booking
       await bookingRepository.createBooking(bookingData);
       
-      setSuccessMessage(`Successfully booked "${bookingService.name}"!`);
+      // Show success toast with booking details
+      ToastService.bookingSuccess(bookingService.name, bookingService.price);
+      
+      // Close the booking dialog
       setIsBookingOpen(false);
       setBookingService(null);
-      setTimeout(() => setSuccessMessage(''), 5000);
+      
+      // Optional: Show additional success information
+      ToastService.info(
+        'Balance Updated',
+        `Your new balance is ${formatCurrency(currentBalance - bookingService.price)}`,
+        { duration: 4000 }
+      );
+      
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Failed to book service';
-      setErrorMessage(errorMsg);
-      setTimeout(() => setErrorMessage(''), 5000);
+      console.error('Booking failed:', error);
+      
+      // Handle different types of errors
+      let errorMessage = 'Failed to book service';
+      
+      if (error && typeof error === 'object' && 'type' in error) {
+        const appError = error as any;
+        switch (appError.type) {
+          case ErrorType.INSUFFICIENT_BALANCE:
+            errorMessage = 'Insufficient balance to complete booking';
+            ToastService.insufficientBalance(
+              bookingService.name, 
+              bookingService.price, 
+              currentBalance
+            );
+            break;
+          case ErrorType.AUTHENTICATION_ERROR:
+            errorMessage = 'Please log in again to continue';
+            ToastService.error('Authentication Required', errorMessage);
+            break;
+          case ErrorType.AUTHORIZATION_ERROR:
+            errorMessage = 'You do not have permission to book this service';
+            ToastService.error('Access Denied', errorMessage);
+            break;
+          case ErrorType.NOT_FOUND:
+            errorMessage = 'Service is no longer available';
+            ToastService.error('Service Unavailable', errorMessage);
+            break;
+          case ErrorType.NETWORK_ERROR:
+            errorMessage = 'Network error. Please check your connection';
+            ToastService.error('Connection Error', errorMessage);
+            break;
+          default:
+            errorMessage = appError.message || 'An unexpected error occurred';
+            ToastService.bookingError(bookingService.name, errorMessage);
+        }
+      } else {
+        const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred';
+        ToastService.bookingError(bookingService.name, errorMsg);
+        errorMessage = errorMsg;
+      }
+      
+      // Set error for the booking dialog
+      setBookingError(errorMessage);
     } finally {
       setIsBooking(false);
     }
+  };
+
+  const handleCloseBookingDialog = () => {
+    setIsBookingOpen(false);
+    setBookingService(null);
+    setBookingError('');
   };
 
   if (!user) {
@@ -944,17 +1186,8 @@ export function ServicesPage() {
 
   return (
     <Box p={6}>
-      {successMessage && (
-        <Box p={4} bg="green.50" border="1px" borderColor="green.200" borderRadius="md" color="green.700" mb={4}>
-          {successMessage}
-        </Box>
-      )}
-
-      {errorMessage && (
-        <Box p={4} bg="red.50" border="1px" borderColor="red.200" borderRadius="md" color="red.700" mb={4}>
-          {errorMessage}
-        </Box>
-      )}
+      {/* Toast Container for notifications */}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
 
       {user.userType === 'provider' ? (
         <ProviderServicesView />
@@ -964,11 +1197,12 @@ export function ServicesPage() {
 
       <BookingConfirmation
         isOpen={isBookingOpen}
-        onClose={() => setIsBookingOpen(false)}
+        onClose={handleCloseBookingDialog}
         service={bookingService}
         onConfirm={confirmBooking}
         isBooking={isBooking}
         userBalance={currentBalance}
+        bookingError={bookingError}
       />
     </Box>
   );
