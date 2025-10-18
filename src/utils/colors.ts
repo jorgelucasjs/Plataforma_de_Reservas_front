@@ -1,3 +1,3 @@
 
 
-export const  AppColor = "#31ecc6"
+export const APPCOLOR = "#31ecc6"

@@ -28,6 +28,7 @@ import {
 } from 'react-icons/hi';
 
 import { useUserUiState } from '../../stores/userStore';
+import { APPCOLOR } from '../../utils/colors';
 import { userRepository } from '../../repositories/userRepository';
 import { ValidationService } from '../../services/validationService';
 import { ToastService } from '../../services/toastService';
@@ -196,7 +197,7 @@ export function ProfilePage() {
           <Text mb={2}>
             Não foi possível carregar os dados do perfil.
           </Text>
-          <Button variant="outline" size="sm" onClick={loadProfileData}>
+          <Button variant="outline" size="sm" bg={APPCOLOR} onClick={loadProfileData}>
             Tentar novamente
           </Button>
         </Box>
@@ -226,6 +227,7 @@ export function ProfilePage() {
               <Button
                 onClick={handleEditToggle}
                 variant="outline"
+                bg={APPCOLOR}
                 size="sm"
               >
                 <HiPencil size={16} />
@@ -253,7 +255,7 @@ export function ProfilePage() {
                 <HStack gap={2}>
                   <Button
                     onClick={handleSubmit}
-                    colorPalette="green"
+                    bg={APPCOLOR}
                     size="sm"
                     loading={isSubmitting}
                     loadingText="Guardando..."

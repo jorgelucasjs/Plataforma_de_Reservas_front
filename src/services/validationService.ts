@@ -38,79 +38,79 @@ const validatePassword = (password: string): boolean => {
 
 // Custom Zod refinements
 const nifValidation = z.string().refine(validateNIF, {
-  message: 'Invalid NIF format or check digit',
+  message: 'Formato de NIF inválido ou dígito de verificação incorreto',
 });
 
-const emailValidation = z.string().email('Invalid email format').refine(validateEmail, {
-  message: 'Invalid email format',
+const emailValidation = z.string().email('Formato de email inválido').refine(validateEmail, {
+  message: 'Formato de email inválido',
 });
 
 const passwordValidation = z.string()
-  .min(8, 'Password must be at least 8 characters long')
+  .min(8, 'Palavra-passe deve ter pelo menos 8 caracteres')
   .refine(validatePassword, {
-    message: 'Password must contain at least one letter and one number',
+    message: 'Palavra-passe deve conter pelo menos uma letra e um número',
   });
 
 // Authentication schemas
 const loginSchema = z.object({
   identifier: z.string()
-    .min(1, 'Email or NIF is required')
+    .min(1, 'Email ou NIF é obrigatório')
     .refine((value) => {
       // Check if it's an email or NIF
       return validateEmail(value) || validateNIF(value);
     }, {
-      message: 'Must be a valid email or NIF',
+      message: 'Deve ser um email ou NIF válido',
     }),
-  password: z.string().min(1, 'Password is required'),
+  password: z.string().min(1, 'Palavra-passe é obrigatória'),
 });
 
 const registerSchema = z.object({
   fullName: z.string()
-    .min(2, 'Full name must be at least 2 characters')
-    .max(100, 'Full name must not exceed 100 characters')
-    .regex(/^[a-zA-ZÀ-ÿ\s]+$/, 'Full name can only contain letters and spaces'),
+    .min(2, 'Nome completo deve ter pelo menos 2 caracteres')
+    .max(100, 'Nome completo não pode exceder 100 caracteres')
+    .regex(/^[a-zA-ZÀ-ÿ\s]+$/, 'Nome completo só pode conter letras e espaços'),
   nif: nifValidation,
   email: emailValidation,
   password: passwordValidation,
   confirmPassword: z.string(),
   userType: z.enum(['client', 'provider'], {
-    message: 'User type must be either client or provider',
+    message: 'Tipo de utilizador deve ser cliente ou prestador',
   }),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: 'Passwords do not match',
+  message: 'Palavras-passe não coincidem',
   path: ['confirmPassword'],
 });
 
 // Service management schemas
 const serviceSchema = z.object({
   name: z.string()
-    .min(3, 'Service name must be at least 3 characters')
-    .max(100, 'Service name must not exceed 100 characters')
+    .min(3, 'Nome do serviço deve ter pelo menos 3 caracteres')
+    .max(100, 'Nome do serviço não pode exceder 100 caracteres')
     .trim(),
   description: z.string()
-    .min(10, 'Description must be at least 10 characters')
-    .max(500, 'Description must not exceed 500 characters')
+    .min(10, 'Descrição deve ter pelo menos 10 caracteres')
+    .max(500, 'Descrição não pode exceder 500 caracteres')
     .trim(),
   price: z.number()
-    .positive('Price must be greater than 0')
-    .max(10000, 'Price must not exceed €10,000')
-    .multipleOf(0.01, 'Price must have at most 2 decimal places'),
+    .positive('Preço deve ser maior que 0')
+    .max(10000, 'Preço não pode exceder €10.000')
+    .multipleOf(0.01, 'Preço deve ter no máximo 2 casas decimais'),
 });
 
 // User profile schemas
 const profileUpdateSchema = z.object({
   fullName: z.string()
-    .min(2, 'Full name must be at least 2 characters')
-    .max(100, 'Full name must not exceed 100 characters')
-    .regex(/^[a-zA-ZÀ-ÿ\s]+$/, 'Full name can only contain letters and spaces'),
+    .min(2, 'Nome completo deve ter pelo menos 2 caracteres')
+    .max(100, 'Nome completo não pode exceder 100 caracteres')
+    .regex(/^[a-zA-ZÀ-ÿ\s]+$/, 'Nome completo só pode conter letras e espaços'),
   email: emailValidation,
 });
 
 // Search and filter schemas
 const serviceFiltersSchema = z.object({
   search: z.string().optional(),
-  minPrice: z.number().min(0, 'Minimum price cannot be negative').optional(),
-  maxPrice: z.number().min(0, 'Maximum price cannot be negative').optional(),
+  minPrice: z.number().min(0, 'Preço mínimo não pode ser negativo').optional(),
+  maxPrice: z.number().min(0, 'Preço máximo não pode ser negativo').optional(),
   sortBy: z.enum(['name', 'price', 'createdAt']).optional(),
   sortOrder: z.enum(['asc', 'desc']).optional(),
   limit: z.number().min(1).max(100).optional(),
@@ -121,7 +121,7 @@ const serviceFiltersSchema = z.object({
   }
   return true;
 }, {
-  message: 'Minimum price cannot be greater than maximum price',
+  message: 'Preço mínimo não pode ser maior que o preço máximo',
   path: ['maxPrice'],
 });
 
@@ -140,7 +140,7 @@ const transactionFiltersSchema = z.object({
   }
   return true;
 }, {
-  message: 'Start date cannot be after end date',
+  message: 'Data de início não pode ser posterior à data de fim',
   path: ['endDate'],
 }).refine((data) => {
   if (data.minAmount !== undefined && data.maxAmount !== undefined) {
@@ -148,7 +148,7 @@ const transactionFiltersSchema = z.object({
   }
   return true;
 }, {
-  message: 'Minimum amount cannot be greater than maximum amount',
+  message: 'Valor mínimo não pode ser maior que o valor máximo',
   path: ['maxAmount'],
 });
 

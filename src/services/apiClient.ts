@@ -7,6 +7,12 @@ import { globalErrorService } from './globalErrorService';
 import { retryService } from './retryService';
 import { cacheService, staticDataCache } from './cacheService';
 
+const baseURL = window.location.hostname === "localhost"? 
+"http://127.0.0.1:5002/angolaeventos-cd238/us-central1/sistemaDeReservaServer"
+:
+
+"https://sistemadereservaserver-33vs75arbq-uc.a.run.app"
+
 // Helper function to create AppError objects
 function createAppError(error: AppError): AppError {
   return error;
@@ -35,7 +41,7 @@ interface ApiClientConfig {
 
 // Default configuration
 const DEFAULT_CONFIG: ApiClientConfig = {
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api',
+  baseURL: baseURL,
   timeout: 10000, // 10 seconds
   headers: {
     'Content-Type': 'application/json',

@@ -5,6 +5,7 @@ import {
   Button,
 } from '@chakra-ui/react';
 import type { ReactNode } from 'react';
+import { APPCOLOR } from '../../utils/colors';
 
 
 interface EmptyStateProps {
@@ -53,7 +54,7 @@ export function EmptyState({
 
         {actionLabel && onAction && (
           <Button
-            colorScheme="blue"
+            bg={APPCOLOR}
             size="sm"
             onClick={onAction}
           >

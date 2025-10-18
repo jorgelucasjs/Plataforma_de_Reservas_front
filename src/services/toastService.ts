@@ -107,8 +107,8 @@ export class ToastService {
    */
   static bookingSuccess(serviceName: string, amount: number): string {
     return this.success(
-      'Booking Confirmed!',
-      `Successfully booked "${serviceName}" for €${amount.toFixed(2)}`,
+      'Reserva Confirmada!',
+      `"${serviceName}" reservado com sucesso por €${amount.toFixed(2)}`,
       { duration: 6000 }
     );
   }
@@ -118,8 +118,8 @@ export class ToastService {
    */
   static bookingError(serviceName: string, error: string): string {
     return this.error(
-      'Booking Failed',
-      `Could not book "${serviceName}": ${error}`,
+      'Falha na Reserva',
+      `Não foi possível reservar "${serviceName}": ${error}`,
       { duration: 8000 }
     );
   }
@@ -130,8 +130,8 @@ export class ToastService {
   static insufficientBalance(serviceName: string, required: number, available: number): string {
     const shortfall = required - available;
     return this.warning(
-      'Insufficient Balance',
-      `You need €${shortfall.toFixed(2)} more to book "${serviceName}". Current balance: €${available.toFixed(2)}. Please add funds to your account.`,
+      'Saldo Insuficiente',
+      `Precisa de mais €${shortfall.toFixed(2)} para reservar "${serviceName}". Saldo atual: €${available.toFixed(2)}. Por favor, adicione fundos à sua conta.`,
       { duration: 10000 }
     );
   }
@@ -141,8 +141,8 @@ export class ToastService {
    */
   static bookingProcessing(serviceName: string, amount: number): string {
     return this.info(
-      'Processing Booking',
-      `Booking "${serviceName}" for €${amount.toFixed(2)}... Please wait.`,
+      'A Processar Reserva',
+      `A reservar "${serviceName}" por €${amount.toFixed(2)}... Por favor, aguarde.`,
       { duration: 3000 }
     );
   }
@@ -152,8 +152,8 @@ export class ToastService {
    */
   static balanceValidationWarning(serviceName: string, userBalance: number, servicePrice: number): string {
     return this.warning(
-      'Balance Check Required',
-      `Please ensure you have sufficient balance (€${servicePrice.toFixed(2)}) to book "${serviceName}". Current balance: €${userBalance.toFixed(2)}`,
+      'Verificação de Saldo Necessária',
+      `Por favor, certifique-se de que tem saldo suficiente (€${servicePrice.toFixed(2)}) para reservar "${serviceName}". Saldo atual: €${userBalance.toFixed(2)}`,
       { duration: 6000 }
     );
   }
@@ -163,8 +163,8 @@ export class ToastService {
    */
   static bookingConfirmationDetails(bookingId: string, serviceName: string, providerName: string): string {
     return this.success(
-      'Booking Details',
-      `Booking ID: ${bookingId} • Service: "${serviceName}" • Provider: ${providerName}`,
+      'Detalhes da Reserva',
+      `ID da Reserva: ${bookingId} • Serviço: "${serviceName}" • Prestador: ${providerName}`,
       { duration: 8000 }
     );
   }

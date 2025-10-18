@@ -13,6 +13,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useFormValidation, validationRules } from '../../hooks/useFormValidation';
 import { TextField } from '../components/FormField';
 import { ValidationErrorDisplay } from '../components/ValidationErrorDisplay';
+import { APPCOLOR } from '../../utils/colors';
 
 export function LoginPage() {
   const { login, isLoading, error, clearError } = useAuth();
@@ -27,14 +28,14 @@ export function LoginPage() {
     identifier: {
       initialValue: '',
       required: true,
-      requiredMessage: 'Email or NIF is required',
+      requiredMessage: 'Email ou NIF é obrigatório',
       rules: [
         validationRules.custom(
           (value: string) => {
             if (!value) return true;
             return ValidationService.validateEmail(value) || ValidationService.validateNIF(value);
           },
-          'Please enter a valid email address or NIF',
+          'Por favor, insira um endereço de email ou NIF válido',
           'onBlur'
         ),
       ],
@@ -42,7 +43,7 @@ export function LoginPage() {
     password: {
       initialValue: '',
       required: true,
-      requiredMessage: 'Password is required',
+      requiredMessage: 'Palavra-passe é obrigatória',
     },
   });
 
@@ -73,21 +74,21 @@ export function LoginPage() {
   return (
     <VStack gap={6} align="stretch">
       <Heading size="lg" textAlign="center" color="gray.700">
-        Sign In
+        Iniciar Sessão
       </Heading>
 
       {/* Display server validation errors */}
       <ValidationErrorDisplay
         errors={serverErrors}
         generalError={generalError || error || undefined}
-        title="Please check your login details:"
+        title="Por favor, verifique os seus dados de login:"
       />
 
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <VStack gap={4}>
           <TextField
-            label="Email or NIF"
-            placeholder="Enter your email or NIF"
+            label="Email ou NIF"
+            placeholder="Insira o seu email ou NIF"
             value={form.values.identifier}
             onChange={(value) => {
               form.setValue('identifier', value);
@@ -104,8 +105,8 @@ export function LoginPage() {
           />
 
           <TextField
-            label="Password"
-            placeholder="Enter your password"
+            label="Palavra-passe"
+            placeholder="Insira a sua palavra-passe"
             value={form.values.password}
             onChange={(value) => {
               form.setValue('password', value);
@@ -123,22 +124,22 @@ export function LoginPage() {
 
           <Button
             type="submit"
-            colorPalette="blue"
+            bg={APPCOLOR}
             size="lg"
             w="full"
             loading={form.isSubmitting || isLoading}
-            loadingText="Signing in..."
+            loadingText="A iniciar sessão..."
             disabled={!form.isValid && Object.keys(form.touched).length > 0}
           >
-            Sign In
+            Iniciar Sessão
           </Button>
         </VStack>
       </form>
 
       <Text textAlign="center" color="gray.600">
-        Don't have an account?{' '}
+        Não tem uma conta?{' '}
         <Link asChild color="blue.500" fontWeight="medium">
-          <RouterLink to="/auth/register">Sign up here</RouterLink>
+          <RouterLink to="/auth/register">Registe-se aqui</RouterLink>
         </Link>
       </Text>
     </VStack>

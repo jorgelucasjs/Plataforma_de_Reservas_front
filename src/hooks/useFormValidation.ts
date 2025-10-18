@@ -212,7 +212,7 @@ export const validationRules = {
       if (typeof value === 'number') return !isNaN(value);
       return Boolean(value);
     },
-    message: message || 'This field is required',
+    message: message || 'Este campo é obrigatório',
     trigger: 'onBlur',
   }),
 
@@ -221,7 +221,7 @@ export const validationRules = {
       if (!value) return true; // Let required rule handle empty values
       return ValidationService.validateEmail(value);
     },
-    message: message || 'Please enter a valid email address',
+    message: message || 'Por favor, insira um endereço de email válido',
     trigger: 'onBlur',
   }),
 
@@ -230,7 +230,7 @@ export const validationRules = {
       if (!value) return true; // Let required rule handle empty values
       return ValidationService.validateNIF(value);
     },
-    message: message || 'Please enter a valid NIF',
+    message: message || 'Por favor, insira um NIF válido',
     trigger: 'onBlur',
   }),
 
@@ -239,7 +239,7 @@ export const validationRules = {
       if (!value) return true; // Let required rule handle empty values
       return ValidationService.validatePassword(value);
     },
-    message: message || 'Password must be at least 8 characters with letters and numbers',
+    message: message || 'Palavra-passe deve ter pelo menos 8 caracteres com letras e números',
     trigger: 'onBlur',
   }),
 
@@ -248,7 +248,7 @@ export const validationRules = {
       if (!value) return true; // Let required rule handle empty values
       return value.length >= min;
     },
-    message: message || `Must be at least ${min} characters`,
+    message: message || `Deve ter pelo menos ${min} caracteres`,
     trigger: 'onBlur',
   }),
 
@@ -257,7 +257,7 @@ export const validationRules = {
       if (!value) return true; // Let required rule handle empty values
       return value.length <= max;
     },
-    message: message || `Must not exceed ${max} characters`,
+    message: message || `Não pode exceder ${max} caracteres`,
     trigger: 'onChange',
   }),
 
@@ -266,7 +266,7 @@ export const validationRules = {
       if (value === null || value === undefined || isNaN(value)) return true;
       return value >= min;
     },
-    message: message || `Must be at least ${min}`,
+    message: message || `Deve ser pelo menos ${min}`,
     trigger: 'onBlur',
   }),
 
@@ -275,7 +275,7 @@ export const validationRules = {
       if (value === null || value === undefined || isNaN(value)) return true;
       return value <= max;
     },
-    message: message || `Must not exceed ${max}`,
+    message: message || `Não pode exceder ${max}`,
     trigger: 'onBlur',
   }),
 
@@ -284,7 +284,7 @@ export const validationRules = {
       if (value === null || value === undefined || isNaN(value)) return true;
       return value > 0;
     },
-    message: message || 'Must be a positive number',
+    message: message || 'Deve ser um número positivo',
     trigger: 'onBlur',
   }),
 
@@ -293,7 +293,7 @@ export const validationRules = {
       if (!value || !formData) return true;
       return value === formData[fieldName];
     },
-    message: message || 'Fields do not match',
+    message: message || 'Os campos não coincidem',
     trigger: 'onBlur',
   }),
 

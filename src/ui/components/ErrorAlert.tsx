@@ -15,6 +15,7 @@ import {
   MdExpandLess,
   MdClose 
 } from 'react-icons/md';
+import { APPCOLOR } from '../../utils/colors';
 
 export type AlertType = 'error' | 'warning' | 'info';
 
@@ -117,8 +118,8 @@ export function ErrorAlert({
   details,
   onRetry,
   onDismiss,
-  retryLabel = 'Try Again',
-  dismissLabel = 'Dismiss',
+  retryLabel = 'Tentar Novamente',
+  dismissLabel = 'Dispensar',
   showRetry = true,
   showDismiss = true,
   showDetails = true,
@@ -182,7 +183,7 @@ export function ErrorAlert({
               h="auto"
               fontWeight="normal"
             >
-              {showDetailsOpen ? 'Hide' : 'Show'} Details
+              {showDetailsOpen ? 'Ocultar' : 'Mostrar'} Detalhes
               {showDetailsOpen ? <MdExpandLess /> : <MdExpandMore />}
             </Button>
           )}
@@ -212,11 +213,11 @@ export function ErrorAlert({
                 <Button
                   size={size}
                   variant={variant === 'solid' ? 'outline' : 'solid'}
-                  colorPalette={type}
+                  bg={APPCOLOR}
                   onClick={onRetry}
                   disabled={isRetrying}
                   loading={isRetrying}
-                  loadingText="Retrying..."
+                  loadingText="A tentar novamente..."
                 >
                   {!isRetrying && <MdRefresh />}
                   {retryLabel}
@@ -254,8 +255,8 @@ export function NetworkError({ onRetry, onDismiss, isRetrying }: NetworkErrorPro
   return (
     <ErrorAlert
       type="error"
-      title="Connection Error"
-      message="Unable to connect to the server. Please check your internet connection and try again."
+      title="Erro de Ligação"
+      message="Não foi possível ligar ao servidor. Por favor, verifique a sua ligação à internet e tente novamente."
       onRetry={onRetry}
       onDismiss={onDismiss}
       isRetrying={isRetrying}
@@ -272,8 +273,8 @@ export function ValidationError({ errors, onDismiss }: ValidationErrorProps) {
   return (
     <ErrorAlert
       type="warning"
-      title="Validation Error"
-      message="Please correct the following errors:"
+      title="Erro de Validação"
+      message="Por favor, corrija os seguintes erros:"
       details={errors.join('\n')}
       onDismiss={onDismiss}
       showRetry={false}
@@ -291,11 +292,11 @@ export function NotFoundError({ resource = 'resource', onRetry, onDismiss }: Not
   return (
     <ErrorAlert
       type="warning"
-      title="Not Found"
-      message={`The requested ${resource} could not be found.`}
+      title="Não Encontrado"
+      message={`O ${resource} solicitado não foi encontrado.`}
       onRetry={onRetry}
       onDismiss={onDismiss}
-      retryLabel="Refresh"
+      retryLabel="Atualizar"
     />
   );
 }
@@ -309,8 +310,8 @@ export function PermissionError({ action = 'perform this action', onDismiss }: P
   return (
     <ErrorAlert
       type="warning"
-      title="Permission Denied"
-      message={`You don't have permission to ${action}.`}
+      title="Permissão Negada"
+      message={`Não tem permissão para ${action}.`}
       onDismiss={onDismiss}
       showRetry={false}
     />

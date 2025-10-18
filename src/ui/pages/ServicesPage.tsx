@@ -32,6 +32,7 @@ import { formatCurrency, formatDate, truncateText } from '../../utils/formatters
 import type { Service, ServiceCreateData, ServiceUpdateData } from '../../types/service';
 import type { BookingCreateData } from '../../types/booking';
 import { ErrorType } from '../../types/error';
+import { APPCOLOR } from '../../utils/colors';
 
 interface ServiceFormProps {
   isOpen: boolean;
@@ -49,34 +50,34 @@ function ServiceForm({ isOpen, onClose, service, onSuccess }: ServiceFormProps) 
     name: {
       initialValue: service?.name || '',
       required: true,
-      requiredMessage: 'Service name is required',
+      requiredMessage: 'Nome do serviço é obrigatório',
       rules: [
-        validationRules.minLength(3, 'Service name must be at least 3 characters'),
-        validationRules.maxLength(100, 'Service name must not exceed 100 characters'),
+        validationRules.minLength(3, 'Nome do serviço deve ter pelo menos 3 caracteres'),
+        validationRules.maxLength(100, 'Nome do serviço não pode exceder 100 caracteres'),
       ],
     },
     description: {
       initialValue: service?.description || '',
       required: true,
-      requiredMessage: 'Service description is required',
+      requiredMessage: 'Descrição do serviço é obrigatória',
       rules: [
-        validationRules.minLength(10, 'Description must be at least 10 characters'),
-        validationRules.maxLength(500, 'Description must not exceed 500 characters'),
+        validationRules.minLength(10, 'Descrição deve ter pelo menos 10 caracteres'),
+        validationRules.maxLength(500, 'Descrição não pode exceder 500 caracteres'),
       ],
     },
     price: {
       initialValue: service?.price || 0,
       required: true,
-      requiredMessage: 'Service price is required',
+      requiredMessage: 'Preço do serviço é obrigatório',
       rules: [
-        validationRules.positiveNumber('Price must be greater than 0'),
-        validationRules.maxValue(10000, 'Price cannot exceed €10,000'),
+        validationRules.positiveNumber('Preço deve ser maior que 0'),
+        validationRules.maxValue(10000, 'Preço não pode exceder €10.000'),
         validationRules.custom(
           (value: number) => {
             if (!value) return true;
             return Math.round(value * 100) === value * 100;
           },
-          'Price can have at most 2 decimal places',
+          'Preço pode ter no máximo 2 casas decimais',
           'onBlur'
         ),
       ],
@@ -170,12 +171,12 @@ function ServiceForm({ isOpen, onClose, service, onSuccess }: ServiceFormProps) 
         overflowY="auto"
       >
         <Heading size="lg" mb={4}>
-          {service ? 'Edit Service' : 'Create New Service'}
+          {service ? 'Editar Serviço' : 'Criar Novo Serviço'}
         </Heading>
 
         {showSuccess && (
           <Box p={4} bg="green.50" border="1px" borderColor="green.200" borderRadius="md" color="green.700" mb={4}>
-            {service ? 'Service updated successfully!' : 'Service created successfully!'}
+            {service ? 'Serviço atualizado com sucesso!' : 'Serviço criado com sucesso!'}
           </Box>
         )}
 
@@ -183,14 +184,14 @@ function ServiceForm({ isOpen, onClose, service, onSuccess }: ServiceFormProps) 
         <ValidationErrorDisplay
           errors={serverErrors}
           generalError={generalError}
-          title="Please fix the following issues:"
+          title="Por favor, corrija os seguintes problemas:"
         />
 
         <form onSubmit={form.handleSubmit(handleSubmit)}>
           <VStack gap={4}>
             <TextField
-              label="Service Name"
-              placeholder="Enter a descriptive service name"
+              label="Nome do Serviço"
+              placeholder="Insira um nome descritivo para o serviço"
               value={form.values.name}
               onChange={(value) => {
                 form.setValue('name', value);
@@ -203,12 +204,12 @@ function ServiceForm({ isOpen, onClose, service, onSuccess }: ServiceFormProps) 
               error={form.touched.name ? form.errors.name || serverErrors.name : undefined}
               isRequired
               maxLength={100}
-              helperText="Choose a clear, descriptive name for your service"
+              helperText="Escolha um nome claro e descritivo para o seu serviço"
             />
 
             <TextAreaField
-              label="Service Description"
-              placeholder="Describe what your service includes, what clients can expect, and any important details"
+              label="Descrição do Serviço"
+              placeholder="Descreva o que o seu serviço inclui, o que os clientes podem esperar e detalhes importantes"
               value={form.values.description}
               onChange={(value) => {
                 form.setValue('description', value);
@@ -222,11 +223,11 @@ function ServiceForm({ isOpen, onClose, service, onSuccess }: ServiceFormProps) 
               isRequired
               rows={4}
               maxLength={500}
-              helperText="Provide detailed information to help clients understand your service"
+              helperText="Forneça informações detalhadas para ajudar os clientes a entender o seu serviço"
             />
 
             <NumberField
-              label="Price (€)"
+              label="Preço (€)"
               placeholder="0.00"
               value={form.values.price}
               onChange={(value) => {
@@ -242,21 +243,21 @@ function ServiceForm({ isOpen, onClose, service, onSuccess }: ServiceFormProps) 
               min={0.01}
               max={10000}
               step={0.01}
-              helperText="Set a competitive price for your service (maximum €10,000)"
+              helperText="Defina um preço competitivo para o seu serviço (máximo €10.000)"
             />
 
             <HStack w="full" justifyContent="flex-end" gap={3}>
               <Button variant="outline" onClick={onClose} disabled={form.isSubmitting}>
-                Cancel
+                Cancelar
               </Button>
               <Button
                 type="submit"
-                colorPalette="blue"
+                bg={APPCOLOR}
                 loading={form.isSubmitting}
-                loadingText={service ? 'Updating...' : 'Creating...'}
+                loadingText={service ? 'A atualizar...' : 'A criar...'}
                 disabled={!form.isValid && Object.keys(form.touched).length > 0}
               >
-                {service ? 'Update Service' : 'Create Service'}
+                {service ? 'Atualizar Serviço' : 'Criar Serviço'}
               </Button>
             </HStack>
           </VStack>
@@ -298,21 +299,21 @@ function DeleteConfirmation({ isOpen, onClose, service, onConfirm, isDeleting }:
         w="full"
         mx={4}
       >
-        <Heading size="md" mb={4}>Delete Service</Heading>
+        <Heading size="md" mb={4}>Eliminar Serviço</Heading>
         <Text mb={6}>
-          Are you sure you want to delete "{service.name}"? This action cannot be undone.
+          Tem a certeza de que quer eliminar "{service.name}"? Esta ação não pode ser desfeita.
         </Text>
         <HStack justifyContent="flex-end" gap={3}>
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            Cancelar
           </Button>
           <Button
-            colorPalette="red"
+            bg="red.500"
             onClick={onConfirm}
             loading={isDeleting}
-            loadingText="Deleting..."
+            loadingText="A eliminar..."
           >
-            Delete
+            Eliminar
           </Button>
         </HStack>
       </Box>
@@ -395,23 +396,23 @@ function BookingConfirmation({
       >
         <HStack mb={4} align="center">
           <Heading size="md" flex="1">
-            {isBooking ? 'Processing Booking...' : 'Confirm Booking'}
+            {isBooking ? 'A processar reserva...' : 'Confirmar Reserva'}
           </Heading>
           {isBooking && (
             <HStack gap={2} color="blue.600">
               <Spinner size="sm" />
-              <Text fontSize="sm" fontWeight="medium">Processing...</Text>
+              <Text fontSize="sm" fontWeight="medium">A processar...</Text>
             </HStack>
           )}
         </HStack>
         
         <VStack gap={4} align="stretch" mb={6}>
           <Box>
-            <Text fontWeight="medium" mb={2}>Service Details</Text>
+            <Text fontWeight="medium" mb={2}>Detalhes do Serviço</Text>
             <Box p={4} bg="gray.50" borderRadius="md" border="1px" borderColor="gray.200">
               <Text fontWeight="bold" fontSize="lg" mb={1}>{service.name}</Text>
               <Text fontSize="sm" color="gray.600" mb={3}>
-                Provider: {service.providerName}
+                Prestador: {service.providerName}
               </Text>
               <Text fontSize="xl" fontWeight="bold" color="blue.600">
                 {formatCurrency(service.price)}
@@ -420,21 +421,21 @@ function BookingConfirmation({
           </Box>
 
           <Box>
-            <Text fontWeight="medium" mb={2}>Payment Summary</Text>
+            <Text fontWeight="medium" mb={2}>Resumo do Pagamento</Text>
             <VStack gap={2} align="stretch" p={4} bg="gray.50" borderRadius="md" border="1px" borderColor="gray.200">
               <Flex justifyContent="space-between">
-                <Text>Current Balance:</Text>
+                <Text>Saldo Atual:</Text>
                 <Text fontWeight="bold" color={userBalance > 0 ? 'green.600' : 'red.600'}>
                   {formatCurrency(userBalance)}
                 </Text>
               </Flex>
               <Flex justifyContent="space-between">
-                <Text>Service Cost:</Text>
+                <Text>Custo do Serviço:</Text>
                 <Text fontWeight="bold" color="red.600">-{formatCurrency(service.price)}</Text>
               </Flex>
               <Box borderTop="1px" borderColor="gray.300" pt={2}>
                 <Flex justifyContent="space-between">
-                  <Text fontWeight="bold">After Booking:</Text>
+                  <Text fontWeight="bold">Após Reserva:</Text>
                   <Text 
                     fontWeight="bold" 
                     color={hasInsufficientBalance ? 'red.600' : 'green.600'}
@@ -457,17 +458,17 @@ function BookingConfirmation({
             >
               <HStack gap={2} mb={2}>
                 <MdError color="red" />
-                <Text fontWeight="bold" color="red.700">Insufficient Balance</Text>
+                <Text fontWeight="bold" color="red.700">Saldo Insuficiente</Text>
               </HStack>
               <Text color="red.700" fontSize="sm" mb={2}>
-                You need {formatCurrency(shortfall)} more to book this service.
+                Precisa de mais {formatCurrency(shortfall)} para reservar este serviço.
               </Text>
               <Text color="red.600" fontSize="xs" mb={2}>
-                Please add funds to your account or choose a different service.
+                Por favor, adicione fundos à sua conta ou escolha um serviço diferente.
               </Text>
               {showBalanceWarning && (
                 <Text color="red.800" fontSize="xs" fontWeight="bold">
-                  ⚠️ Cannot proceed with booking - insufficient funds
+                  ⚠️ Não é possível prosseguir com a reserva - fundos insuficientes
                 </Text>
               )}
             </Box>
@@ -477,7 +478,7 @@ function BookingConfirmation({
             <Box p={4} bg="red.50" border="1px" borderColor="red.200" borderRadius="md">
               <HStack gap={2} mb={2}>
                 <MdError color="red" />
-                <Text fontWeight="bold" color="red.700">Booking Error</Text>
+                <Text fontWeight="bold" color="red.700">Erro na Reserva</Text>
               </HStack>
               <Text color="red.700" fontSize="sm">
                 {bookingError}
@@ -489,13 +490,13 @@ function BookingConfirmation({
             <Box p={4} bg="green.50" border="1px" borderColor="green.200" borderRadius="md">
               <HStack gap={2} mb={2}>
                 <MdCheckCircle color="green" />
-                <Text fontWeight="bold" color="green.700">Ready to Book</Text>
+                <Text fontWeight="bold" color="green.700">Pronto para Reservar</Text>
               </HStack>
               <Text color="green.700" fontSize="sm" mb={2}>
-                Your booking will be confirmed immediately and the amount will be deducted from your balance.
+                A sua reserva será confirmada imediatamente e o valor será deduzido do seu saldo.
               </Text>
               <Text color="green.600" fontSize="xs">
-                ✓ Balance sufficient • ✓ Service available • ✓ Ready to proceed
+                ✓ Saldo suficiente • ✓ Serviço disponível • ✓ Pronto para prosseguir
               </Text>
             </Box>
           )}
@@ -507,17 +508,17 @@ function BookingConfirmation({
             onClick={onClose}
             disabled={isBooking}
           >
-            Cancel
+            Cancelar
           </Button>
           <Button
-            colorPalette={hasInsufficientBalance || showBalanceWarning ? "red" : "green"}
+            bg={hasInsufficientBalance || showBalanceWarning ? "red.500" : APPCOLOR}
             onClick={handleConfirmClick}
             loading={isBooking}
-            loadingText="Processing Booking..."
+            loadingText="A processar reserva..."
             disabled={isBooking}
             _hover={hasInsufficientBalance || showBalanceWarning ? { bg: 'red.600' } : { bg: 'green.600' }}
           >
-            {hasInsufficientBalance || showBalanceWarning ? 'Insufficient Balance' : 'Confirm Booking'}
+            {hasInsufficientBalance || showBalanceWarning ? 'Saldo Insuficiente' : 'Confirmar Reserva'}
           </Button>
         </HStack>
       </Box>
@@ -551,12 +552,12 @@ function ServiceCard({ service, onEdit, onDelete, onBook, isProvider = false }: 
         <Box>
           <Heading size="md" mb={1}>{service.name}</Heading>
           <Text fontSize="sm" color="gray.500">
-            {isProvider ? `Created ${formatDate(service.createdAt)}` : `By ${service.providerName}`}
+            {isProvider ? `Criado em ${formatDate(service.createdAt)}` : `Por ${service.providerName}`}
           </Text>
         </Box>
         <Spacer />
         <Badge colorPalette={service.isActive ? 'green' : 'gray'}>
-          {service.isActive ? 'Active' : 'Inactive'}
+          {service.isActive ? 'Ativo' : 'Inativo'}
         </Badge>
       </Flex>
 
@@ -573,33 +574,33 @@ function ServiceCard({ service, onEdit, onDelete, onBook, isProvider = false }: 
           <Button
             size="sm"
             variant="outline"
-            colorPalette="blue"
+            bg={APPCOLOR}
             onClick={() => onEdit?.(service)}
           >
             <MdEdit />
-            Edit
+            Editar
           </Button>
           <Button
             size="sm"
             variant="outline"
-            colorPalette="red"
+            bg="red.500"
             onClick={() => onDelete?.(service)}
           >
             <MdDelete />
-            Delete
+            Eliminar
           </Button>
         </HStack>
       ) : (
         <Button
           size="sm"
-          colorPalette={service.isActive ? "green" : "gray"}
+          bg={service.isActive ? APPCOLOR : "gray.400"}
           w="full"
           onClick={() => {
             if (service.isActive && onBook) {
               // Show immediate feedback when booking button is clicked
               ToastService.info(
-                'Opening Booking',
-                `Preparing to book "${service.name}"...`,
+                'A abrir reserva',
+                `A preparar reserva de "${service.name}"...`,
                 { duration: 2000 }
               );
               onBook(service);
@@ -610,7 +611,7 @@ function ServiceCard({ service, onEdit, onDelete, onBook, isProvider = false }: 
           _hover={service.isActive ? { bg: 'green.600', transform: 'translateY(-1px)' } : {}}
           transition="all 0.2s ease-in-out"
         >
-          {service.isActive ? '📅 Book Service' : '❌ Service Unavailable'}
+          {service.isActive ? '📅 Reservar Serviço' : '❌ Serviço Indisponível'}
         </Button>
       )}
     </Box>
@@ -650,7 +651,7 @@ function SearchAndFilters({
       <HStack mb={4}>
         <Box position="relative" flex="1">
           <Input
-            placeholder="Search services... (Ctrl+K)"
+            placeholder="Pesquisar serviços... (Ctrl+K)"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             pr="40px"
@@ -664,7 +665,7 @@ function SearchAndFilters({
           onClick={() => setShowFilters(!showFilters)}
         >
           <MdFilterList />
-          Filters
+          Filtros
         </Button>
       </HStack>
 
@@ -680,19 +681,19 @@ function SearchAndFilters({
           <VStack gap={4} align="stretch">
             {/* Price Range */}
             <Box>
-              <Text fontSize="sm" fontWeight="medium" mb={2}>Price Range (€)</Text>
+              <Text fontSize="sm" fontWeight="medium" mb={2}>Intervalo de Preços (€)</Text>
               <HStack>
                 <Input
                   type="number"
-                  placeholder="Min"
+                  placeholder="Mín"
                   value={minPrice || ''}
                   onChange={(e) => onPriceChange(parseFloat(e.target.value) || 0, maxPrice)}
                   size="sm"
                 />
-                <Text>to</Text>
+                <Text>até</Text>
                 <Input
                   type="number"
-                  placeholder="Max"
+                  placeholder="Máx"
                   value={maxPrice || ''}
                   onChange={(e) => onPriceChange(minPrice, parseFloat(e.target.value) || 0)}
                   size="sm"
@@ -702,7 +703,7 @@ function SearchAndFilters({
 
             {/* Sort Options */}
             <Box>
-              <Text fontSize="sm" fontWeight="medium" mb={2}>Sort By</Text>
+              <Text fontSize="sm" fontWeight="medium" mb={2}>Ordenar Por</Text>
               <HStack>
                 <select
                   value={sortBy}
@@ -714,9 +715,9 @@ function SearchAndFilters({
                     backgroundColor: 'white',
                   }}
                 >
-                  <option value="name">Name</option>
-                  <option value="price">Price</option>
-                  <option value="createdAt">Date Created</option>
+                  <option value="name">Nome</option>
+                  <option value="price">Preço</option>
+                  <option value="createdAt">Data de Criação</option>
                 </select>
                 <select
                   value={sortOrder}
@@ -728,8 +729,8 @@ function SearchAndFilters({
                     backgroundColor: 'white',
                   }}
                 >
-                  <option value="asc">Ascending</option>
-                  <option value="desc">Descending</option>
+                  <option value="asc">Crescente</option>
+                  <option value="desc">Decrescente</option>
                 </select>
               </HStack>
             </Box>
@@ -737,10 +738,10 @@ function SearchAndFilters({
             {/* Filter Actions */}
             <HStack justifyContent="flex-end">
               <Button size="sm" variant="outline" onClick={onClearFilters}>
-                Clear
+                Limpar
               </Button>
-              <Button size="sm" colorPalette="blue" onClick={onApplyFilters}>
-                Apply Filters
+              <Button size="sm" bg={APPCOLOR} onClick={onApplyFilters}>
+                Aplicar Filtros
               </Button>
             </HStack>
           </VStack>
@@ -900,7 +901,7 @@ function ClientServicesView({ onBookService }: ClientServicesViewProps) {
 
   return (
     <Box>
-      <Heading mb={6}>Available Services</Heading>
+      <Heading mb={6}>Serviços Disponíveis</Heading>
 
       <SearchAndFilters
         searchQuery={searchQuery}
@@ -938,7 +939,7 @@ function ClientServicesView({ onBookService }: ClientServicesViewProps) {
               {searchQuery || minPrice || maxPrice ? 'No services match your criteria.' : 'No services available at the moment.'}
             </Text>
             {(searchQuery || minPrice || maxPrice) && (
-              <Button colorPalette="blue" onClick={clearFilters}>
+              <Button bg={APPCOLOR} onClick={clearFilters}>
                 Clear Filters
               </Button>
             )}
@@ -978,7 +979,7 @@ function ClientServicesView({ onBookService }: ClientServicesViewProps) {
                   </Box>
                 )}
                 <Button
-                  colorPalette="blue"
+                  bg={APPCOLOR}
                   variant="outline"
                   onClick={loadMoreServices}
                   loading={isLoadingMore}
@@ -1073,7 +1074,7 @@ function ProviderServicesView() {
         <Heading>My Services</Heading>
         <Spacer />
         <Button
-          colorPalette="blue"
+          bg={APPCOLOR}
           onClick={handleCreateService}
         >
           <MdAdd />
@@ -1111,7 +1112,7 @@ function ProviderServicesView() {
               You haven't created any services yet.
             </Text>
             <Button
-              colorPalette="blue"
+              bg={APPCOLOR}
               onClick={handleCreateService}
             >
               <MdAdd />

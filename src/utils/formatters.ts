@@ -95,7 +95,7 @@ export function formatDate(
     const dateObj = typeof date === 'string' ? new Date(date) : date;
     
     if (isNaN(dateObj.getTime())) {
-      return 'Invalid date';
+      return 'Data inválida';
     }
 
     const formatter = new Intl.DateTimeFormat(locale, {
@@ -121,7 +121,7 @@ export function formatRelativeTime(date: string | Date, locale: string = 'pt-PT'
     const dateObj = typeof date === 'string' ? new Date(date) : date;
     
     if (isNaN(dateObj.getTime())) {
-      return 'Invalid date';
+      return 'Data inválida';
     }
 
     const now = new Date();

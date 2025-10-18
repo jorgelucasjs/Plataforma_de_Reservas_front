@@ -28,6 +28,7 @@ import { useServiceUiState } from '../../stores/serviceStore';
 import { useBookingUiState } from '../../stores/bookingStore';
 import { userRepository } from '../../repositories/userRepository';
 import { serviceRepository } from '../../repositories/serviceRepository';
+import { APPCOLOR } from '../../utils/colors';
 import { bookingRepository } from '../../repositories/bookingRepository';
 import { formatCurrency, formatUserType } from '../../utils/formatters';
 
@@ -330,7 +331,7 @@ export function DashboardPage() {
             {isProvider && (
               <>
                 <Button
-                  colorPalette="blue"
+                  bg={APPCOLOR}
                   size="lg"
                   onClick={handleCreateService}
                   h="auto"
@@ -344,7 +345,7 @@ export function DashboardPage() {
 
                 <Button
                   variant="outline"
-                  colorPalette="green"
+                  bg={APPCOLOR}
                   size="lg"
                   onClick={handleViewBookings}
                   h="auto"
@@ -361,7 +362,7 @@ export function DashboardPage() {
             {isClient && (
               <>
                 <Button
-                  colorPalette="blue"
+                  bg={APPCOLOR}
                   size="lg"
                   onClick={handleBrowseServices}
                   h="auto"
@@ -375,7 +376,7 @@ export function DashboardPage() {
 
                 <Button
                   variant="outline"
-                  colorPalette="green"
+                  bg={APPCOLOR}
                   size="lg"
                   onClick={handleViewBookings}
                   h="auto"
@@ -391,7 +392,7 @@ export function DashboardPage() {
 
             <Button
               variant="outline"
-              colorPalette="purple"
+              bg={APPCOLOR}
               size="lg"
               onClick={handleViewTransactions}
               h="auto"
@@ -405,7 +406,7 @@ export function DashboardPage() {
 
             <Button
               variant="outline"
-              colorPalette="gray"
+              bg={APPCOLOR}
               size="lg"
               onClick={handleViewProfile}
               h="auto"
@@ -465,7 +466,7 @@ export function DashboardPage() {
               {bookings.length > 3 && (
                 <Button
                   variant="ghost"
-                  colorPalette="blue"
+                  bg={APPCOLOR}
                   onClick={handleViewBookings}
                   size="sm"
                 >
@@ -482,7 +483,7 @@ export function DashboardPage() {
                 }
               </Text>
               <Button
-                colorPalette="blue"
+                bg={APPCOLOR}
                 onClick={isProvider ? handleCreateService : handleBrowseServices}
               >
                 {isProvider ? 'Criar Primeiro Serviço' : 'Explorar Serviços'}

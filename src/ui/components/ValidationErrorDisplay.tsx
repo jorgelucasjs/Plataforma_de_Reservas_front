@@ -20,7 +20,7 @@ interface ValidationErrorDisplayProps {
 export function ValidationErrorDisplay({
   errors,
   generalError,
-  title = 'Please fix the following errors:',
+  title = 'Por favor, corrija os seguintes erros:',
   showFieldNames = true,
   collapsible = false,
   maxVisibleErrors = 5,
@@ -65,7 +65,7 @@ export function ValidationErrorDisplay({
             onClick={onToggle}
           >
             <HStack gap={1}>
-              <Text>{isOpen ? 'Hide' : 'Show'} Details</Text>
+              <Text>{isOpen ? 'Ocultar' : 'Mostrar'} Detalhes</Text>
               {isOpen ? <HiChevronUp /> : <HiChevronDown />}
             </HStack>
           </Button>
@@ -102,7 +102,7 @@ export function ValidationErrorDisplay({
 
           {hiddenErrorsCount > 0 && (
             <Text fontSize="xs" color="red.600" mt={2} fontStyle="italic">
-              ... and {hiddenErrorsCount} more error{hiddenErrorsCount !== 1 ? 's' : ''}
+              ... e mais {hiddenErrorsCount} erro{hiddenErrorsCount !== 1 ? 's' : ''}
             </Text>
           )}
         </Box>
@@ -169,7 +169,7 @@ export function FormValidationSummary({
       <HStack mb={2}>
         <HiExclamationCircle color="red" />
         <Text fontSize="sm" fontWeight="bold" color="red.700">
-          {touchedErrors.length} error{touchedErrors.length !== 1 ? 's' : ''} found
+          {touchedErrors.length} erro{touchedErrors.length !== 1 ? 's' : ''} encontrado{touchedErrors.length !== 1 ? 's' : ''}
         </Text>
       </HStack>
       
