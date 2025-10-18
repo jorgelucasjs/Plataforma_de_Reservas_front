@@ -1,7 +1,5 @@
 // Test file to verify all dependencies are properly installed and configured
 import { create } from 'zustand';
-import { BrowserRouter } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 // Test Zustand store creation
@@ -20,9 +18,6 @@ const testSchema = z.object({
   name: z.string(),
   email: z.string().email(),
 });
-
-// Test TypeScript path mapping
-import type { User } from '@/types/auth';
 
 console.log('All dependencies are properly configured!');
 

@@ -89,6 +89,28 @@ export class TokenService {
     const token = this.getToken();
     return token !== null && !this.isTokenExpired();
   }
+
+  // Check if a specific token is valid (not expired)
+  isTokenValid(token: string): boolean {
+    if (!token) {
+      return false;
+    }
+
+    // If we have the token stored and it matches, check expiry
+    const storedToken = localStorage.getItem(TOKEN_KEY);
+    if (storedToken === token) {
+      return !this.isTokenExpired();
+    }
+
+    // If token doesn't match stored token, we can't validate it
+    // In a real app, you might decode the JWT to check expiry
+    return false;
+  }
+
+  // Remove token (alias for clearToken for consistency)
+  removeToken(): void {
+    this.clearToken();
+  }
 }
 
 // Create and export singleton instance

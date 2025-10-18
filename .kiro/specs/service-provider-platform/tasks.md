@@ -113,64 +113,99 @@
     - Add transaction history state management
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 6.4, 6.5, 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7_
 
-- [ ] 5. Implement repository layer with business logic
-  - [ ] 5.1 Create authentication repository
+- [x] 5. Implement repository layer with business logic
+
+
+
+
+
+  - [x] 5.1 Create authentication repository
+
+
     - Implement login and register methods that update auth store
     - Add token management and logout functionality
     - Handle authentication errors and validation
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 2.1, 2.2, 2.3, 2.4, 2.5_
   
-  - [ ] 5.2 Create user management repository
+  - [x] 5.2 Create user management repository
+
+
     - Implement profile loading and updating methods
     - Add balance checking and display methods
     - Handle profile validation and error states
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 9.1, 9.2, 9.3, 9.4_
   
-  - [ ] 5.3 Create service management repository
+  - [x] 5.3 Create service management repository
+
+
     - Implement service CRUD operations with store updates
     - Add service filtering and search functionality
     - Handle provider-only access validation
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6_
   
-  - [ ] 5.4 Create booking management repository
+  - [x] 5.4 Create booking management repository
+
+
     - Implement booking creation with balance validation
     - Add booking cancellation with balance reversal
     - Handle atomic transaction operations
     - Implement transaction history loading with filters
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7_
 
-- [ ] 6. Create utility services and helpers
-  - [ ] 6.1 Implement token service for JWT management
+- [x] 6. Create utility services and helpers
+
+
+
+
+
+  - [x] 6.1 Implement token service for JWT management
+
+
     - Create token storage, retrieval, and validation functions
     - Add token expiration checking and cleanup
     - _Requirements: 1.4, 1.7_
   
-  - [ ] 6.2 Create validation service with form schemas
+  - [x] 6.2 Create validation service with form schemas
+
+
     - Implement Zod schemas for all form validations
     - Add custom validation rules for NIF, email, and business logic
     - _Requirements: 1.5, 2.4, 3.8, 9.3_
   
-  - [ ] 6.3 Implement formatting utilities
+  - [x] 6.3 Implement formatting utilities
+
+
     - Create currency formatting functions
     - Add date formatting and display utilities
     - Implement text truncation and display helpers
     - _Requirements: 8.5, 7.2, 7.3, 7.4_
 
-- [ ] 7. Build authentication and routing system
-  - [ ] 7.1 Set up React Router with protected routes
+- [x] 7. Build authentication and routing system
+
+
+
+
+
+  - [x] 7.1 Set up React Router with protected routes
+
+
     - Configure routing structure with public and private routes
     - Implement route guards based on authentication status
     - Add role-based route protection for providers and clients
     - _Requirements: 1.6, 3.7, 4.6, 5.6_
   
-  - [ ] 7.2 Create authentication layout and pages
+  - [x] 7.2 Create authentication layout and pages
+
+
     - Build AuthLayout component with responsive design
     - Implement LoginPage with email/NIF and password fields
     - Create RegisterPage with user type selection
     - Add form validation and error handling
     - _Requirements: 1.1, 1.2, 1.3, 1.5, 2.1, 2.2, 2.3, 2.4, 2.5, 10.1, 10.2, 10.3, 10.4, 10.5_
   
-  - [ ] 7.3 Implement authentication hooks and guards
+  - [x] 7.3 Implement authentication hooks and guards
+
+
     - Create useAuth hook for authentication state management
     - Implement ProtectedRoute component with role checking
     - Add automatic token refresh and logout handling

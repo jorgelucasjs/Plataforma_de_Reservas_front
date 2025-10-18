@@ -1,11 +1,13 @@
 // Authentication related types and interfaces
 
+export type UserType = 'client' | 'provider';
+
 export interface User {
   id: string;
   fullName: string;
   email: string;
   nif: string;
-  userType: 'client' | 'provider';
+  userType: UserType;
   balance: number;
   isActive: boolean;
   createdAt: string;
@@ -21,7 +23,7 @@ export interface RegisterData {
   nif: string;
   email: string;
   password: string;
-  userType: 'client' | 'provider';
+  userType: UserType;
 }
 
 export interface AuthResponse {
@@ -42,7 +44,7 @@ export interface RegisterForm {
   email: string;
   password: string;
   confirmPassword: string;
-  userType: 'client' | 'provider';
+  userType: UserType;
 }
 
 // Auth state management interfaces
