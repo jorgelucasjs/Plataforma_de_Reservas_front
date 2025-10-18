@@ -1,0 +1,64 @@
+// Authentication related types and interfaces
+
+export interface User {
+  id: string;
+  fullName: string;
+  email: string;
+  nif: string;
+  userType: 'client' | 'provider';
+  balance: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface LoginCredentials {
+  identifier: string; // email or NIF
+  password: string;
+}
+
+export interface RegisterData {
+  fullName: string;
+  nif: string;
+  email: string;
+  password: string;
+  userType: 'client' | 'provider';
+}
+
+export interface AuthResponse {
+  token: string;
+  expiresIn: string;
+  user: User;
+}
+
+// Form data types
+export interface LoginForm {
+  identifier: string;
+  password: string;
+}
+
+export interface RegisterForm {
+  fullName: string;
+  nif: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  userType: 'client' | 'provider';
+}
+
+// Auth state management interfaces
+export interface AuthState {
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+}
+
+export interface AuthActions {
+  setUser: (user: User | null) => void;
+  setToken: (token: string | null) => void;
+  setIsAuthenticated: (isAuth: boolean) => void;
+  setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
+  logout: () => void;
+}
