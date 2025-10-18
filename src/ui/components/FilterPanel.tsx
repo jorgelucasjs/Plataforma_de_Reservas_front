@@ -7,8 +7,16 @@ import {
   Text,
   Input,
   useDisclosure,
+  Stack,
 } from '@chakra-ui/react';
 import { MdFilterList, MdExpandMore, MdExpandLess } from 'react-icons/md';
+import { useResponsive } from '../../hooks/useResponsive';
+import { 
+  responsiveSpacing, 
+  touchTargets, 
+  cardSizes,
+  responsiveFontSizes 
+} from '../../utils/responsive';
 
 export interface FilterConfig {
   priceRange?: {
@@ -61,6 +69,7 @@ export function FilterPanel({
   size = 'md'
 }: FilterPanelProps) {
   const { open: isOpen, onToggle } = useDisclosure({ defaultOpen: defaultExpanded });
+  const { isMobile, isTouch } = useResponsive();
   const [filters, setFilters] = useState<Record<string, any>>({
     minPrice: config.priceRange?.min || 0,
     maxPrice: config.priceRange?.max || 0,
@@ -74,6 +83,8 @@ export function FilterPanel({
       [filter.key]: filter.value || ''
     }), {})
   });
+
+  const responsiveSize = isMobile || isTouch ? 'lg' : size;
 
   const handleFilterChange = (key: string, value: any) => {
     const newFilters = { ...filters, [key]: value };
@@ -110,62 +121,128 @@ export function FilterPanel({
     <Box
       border="1px"
       borderColor="gray.200"
-      borderRadius="lg"
-      p={4}
+      borderRadius={cardSizes.borderRadius}
+      p={cardSizes.padding}
       bg="gray.50"
     >
-      <VStack gap={4} align="stretch">
+      <VStack gap={responsiveSpacing.md} align="stretch">
         {/* Price Range */}
         {config.priceRange && (
           <Box>
-            <Text fontSize="sm" fontWeight="medium" mb={2}>
+            <Text 
+              fontSize={responsiveFontSizes.sm} 
+              fontWeight="medium" 
+              mb={responsiveSpacing.sm}
+            >
               Price Range ({config.priceRange.currency || '€'})
             </Text>
-            <HStack>
+            <Stack 
+              direction={{ base: 'column', sm: 'row' }}
+              gap={responsiveSpacing.sm}
+              align="center"
+            >
               <Input
                 type="number"
                 placeholder="Min"
                 value={filters.minPrice || ''}
                 onChange={(e) => handleFilterChange('minPrice', parseFloat(e.target.value) || 0)}
-                size={size}
+                size={responsiveSize}
                 step={config.priceRange.step || 0.01}
                 min={0}
+                minH={isTouch ? touchTargets.comfortable : 'auto'}
+                fontSize={{ base: '16px', md: 'md' }} // Prevent zoom on iOS
+                _focus={{
+                  borderColor: 'blue.500',
+                  boxShadow: '0 0 0 2px var(--chakra-colors-blue-200)',
+                  outline: '2px solid',
+                  outlineColor: 'blue.500',
+                  outlineOffset: '2px'
+                }}
               />
-              <Text fontSize="sm" color="gray.500">to</Text>
+              <Text 
+                fontSize={responsiveFontSizes.sm} 
+                color="gray.500"
+                flexShrink={0}
+              >
+                to
+              </Text>
               <Input
                 type="number"
                 placeholder="Max"
                 value={filters.maxPrice || ''}
                 onChange={(e) => handleFilterChange('maxPrice', parseFloat(e.target.value) || 0)}
-                size={size}
+                size={responsiveSize}
                 step={config.priceRange.step || 0.01}
                 min={0}
+                minH={isTouch ? touchTargets.comfortable : 'auto'}
+                fontSize={{ base: '16px', md: 'md' }} // Prevent zoom on iOS
+                _focus={{
+                  borderColor: 'blue.500',
+                  boxShadow: '0 0 0 2px var(--chakra-colors-blue-200)',
+                  outline: '2px solid',
+                  outlineColor: 'blue.500',
+                  outlineOffset: '2px'
+                }}
               />
-            </HStack>
+            </Stack>
           </Box>
         )}
 
         {/* Date Range */}
         {config.dateRange && (
           <Box>
-            <Text fontSize="sm" fontWeight="medium" mb={2}>Date Range</Text>
-            <HStack>
+            <Text 
+              fontSize={responsiveFontSizes.sm} 
+              fontWeight="medium" 
+              mb={responsiveSpacing.sm}
+            >
+              Date Range
+            </Text>
+            <Stack 
+              direction={{ base: 'column', sm: 'row' }}
+              gap={responsiveSpacing.sm}
+              align="center"
+            >
               <Input
                 type="date"
                 placeholder="From"
                 value={filters.dateFrom}
                 onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
-                size={size}
+                size={responsiveSize}
+                minH={isTouch ? touchTargets.comfortable : 'auto'}
+                fontSize={{ base: '16px', md: 'md' }} // Prevent zoom on iOS
+                _focus={{
+                  borderColor: 'blue.500',
+                  boxShadow: '0 0 0 2px var(--chakra-colors-blue-200)',
+                  outline: '2px solid',
+                  outlineColor: 'blue.500',
+                  outlineOffset: '2px'
+                }}
               />
-              <Text fontSize="sm" color="gray.500">to</Text>
+              <Text 
+                fontSize={responsiveFontSizes.sm} 
+                color="gray.500"
+                flexShrink={0}
+              >
+                to
+              </Text>
               <Input
                 type="date"
                 placeholder="To"
                 value={filters.dateTo}
                 onChange={(e) => handleFilterChange('dateTo', e.target.value)}
-                size={size}
+                size={responsiveSize}
+                minH={isTouch ? touchTargets.comfortable : 'auto'}
+                fontSize={{ base: '16px', md: 'md' }} // Prevent zoom on iOS
+                _focus={{
+                  borderColor: 'blue.500',
+                  boxShadow: '0 0 0 2px var(--chakra-colors-blue-200)',
+                  outline: '2px solid',
+                  outlineColor: 'blue.500',
+                  outlineOffset: '2px'
+                }}
               />
-            </HStack>
+            </Stack>
           </Box>
         )}
 
@@ -285,25 +362,46 @@ export function FilterPanel({
         )}
 
         {/* Filter Actions */}
-        <HStack justifyContent="flex-end" pt={2}>
+        <Stack 
+          direction={{ base: 'column', sm: 'row' }}
+          justifyContent="flex-end" 
+          pt={responsiveSpacing.sm}
+          gap={responsiveSpacing.sm}
+        >
           <Button 
-            size={size} 
+            size={responsiveSize} 
             variant="outline" 
             onClick={handleClear}
             disabled={!hasActiveFilters}
+            minH={isTouch ? touchTargets.comfortable : 'auto'}
+            w={{ base: 'full', sm: 'auto' }}
+            _focus={{
+              boxShadow: 'outline',
+              outline: '2px solid',
+              outlineColor: 'gray.500',
+              outlineOffset: '2px'
+            }}
           >
             Clear
           </Button>
           {showApplyButton && (
             <Button 
-              size={size} 
+              size={responsiveSize} 
               colorPalette="blue" 
               onClick={onApplyFilters}
+              minH={isTouch ? touchTargets.comfortable : 'auto'}
+              w={{ base: 'full', sm: 'auto' }}
+              _focus={{
+                boxShadow: 'outline',
+                outline: '2px solid',
+                outlineColor: 'blue.500',
+                outlineOffset: '2px'
+              }}
             >
               Apply Filters
             </Button>
           )}
-        </HStack>
+        </Stack>
       </VStack>
     </Box>
   );
@@ -313,29 +411,48 @@ export function FilterPanel({
   }
 
   return (
-    <Box mb={6}>
-      <HStack mb={4} justify="space-between">
+    <Box mb={responsiveSpacing.lg}>
+      <HStack mb={responsiveSpacing.md} justify="space-between">
         <Button
           variant="outline"
           onClick={onToggle}
-          size={size}
+          size={responsiveSize}
+          minH={isTouch ? touchTargets.comfortable : 'auto'}
+          _focus={{
+            boxShadow: 'outline',
+            outline: '2px solid',
+            outlineColor: 'blue.500',
+            outlineOffset: '2px'
+          }}
+          aria-expanded={isOpen}
+          aria-controls="filter-content"
         >
-          <MdFilterList />
-          Filters
-          {isOpen ? <MdExpandLess /> : <MdExpandMore />}
-          {hasActiveFilters && (
-            <Box
-              ml={2}
-              w="2"
-              h="2"
-              bg="blue.500"
-              borderRadius="full"
-            />
-          )}
+          <HStack gap={2}>
+            <MdFilterList size={isMobile ? 20 : 16} />
+            <Text>Filters</Text>
+            {isOpen ? (
+              <MdExpandLess size={isMobile ? 20 : 16} />
+            ) : (
+              <MdExpandMore size={isMobile ? 20 : 16} />
+            )}
+            {hasActiveFilters && (
+              <Box
+                ml={1}
+                w={isMobile ? "3" : "2"}
+                h={isMobile ? "3" : "2"}
+                bg="blue.500"
+                borderRadius="full"
+              />
+            )}
+          </HStack>
         </Button>
       </HStack>
 
-      {isOpen && <FilterContent />}
+      {isOpen && (
+        <Box id="filter-content">
+          <FilterContent />
+        </Box>
+      )}
     </Box>
   );
 }

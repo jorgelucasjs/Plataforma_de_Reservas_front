@@ -8,7 +8,7 @@ import {
   Text,
   Badge,
   Input,
-  Textarea,
+
   Spinner,
   Center,
   Grid,
@@ -21,7 +21,11 @@ import { useServiceUiState } from '../../stores/serviceStore';
 import { useUserUiState } from '../../stores/userStore';
 import { serviceRepository } from '../../repositories/serviceRepository';
 import { bookingRepository } from '../../repositories/bookingRepository';
-import { ValidationService, type ServiceFormData } from '../../services/validationService';
+import { type ServiceFormData } from '../../services/validationService';
+import { ServerValidationService } from '../../services/serverValidationService';
+import { useFormValidation, validationRules } from '../../hooks/useFormValidation';
+import { TextField, TextAreaField, NumberField } from '../components/FormField';
+import { ValidationErrorDisplay } from '../components/ValidationErrorDisplay';
 import { ToastService, useToastState } from '../../services/toastService';
 import { ToastContainer } from '../components/Toast';
 import { formatCurrency, formatDate, truncateText } from '../../utils/formatters';
@@ -37,59 +41,72 @@ interface ServiceFormProps {
 }
 
 function ServiceForm({ isOpen, onClose, service, onSuccess }: ServiceFormProps) {
-  const [formData, setFormData] = useState<ServiceFormData>({
-    name: service?.name || '',
-    description: service?.description || '',
-    price: service?.price || 0,
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
+  const [generalError, setGeneralError] = useState<string>('');
   const [showSuccess, setShowSuccess] = useState(false);
-  const [showError, setShowError] = useState('');
+
+  const form = useFormValidation<ServiceFormData>({
+    name: {
+      initialValue: service?.name || '',
+      required: true,
+      requiredMessage: 'Service name is required',
+      rules: [
+        validationRules.minLength(3, 'Service name must be at least 3 characters'),
+        validationRules.maxLength(100, 'Service name must not exceed 100 characters'),
+      ],
+    },
+    description: {
+      initialValue: service?.description || '',
+      required: true,
+      requiredMessage: 'Service description is required',
+      rules: [
+        validationRules.minLength(10, 'Description must be at least 10 characters'),
+        validationRules.maxLength(500, 'Description must not exceed 500 characters'),
+      ],
+    },
+    price: {
+      initialValue: service?.price || 0,
+      required: true,
+      requiredMessage: 'Service price is required',
+      rules: [
+        validationRules.positiveNumber('Price must be greater than 0'),
+        validationRules.maxValue(10000, 'Price cannot exceed €10,000'),
+        validationRules.custom(
+          (value: number) => {
+            if (!value) return true;
+            return Math.round(value * 100) === value * 100;
+          },
+          'Price can have at most 2 decimal places',
+          'onBlur'
+        ),
+      ],
+    },
+  });
 
   // Reset form when modal opens/closes or service changes
   useEffect(() => {
     if (isOpen) {
-      setFormData({
-        name: service?.name || '',
-        description: service?.description || '',
-        price: service?.price || 0,
-      });
-      setErrors({});
+      form.setValue('name', service?.name || '');
+      form.setValue('description', service?.description || '');
+      form.setValue('price', service?.price || 0);
+      form.clearAllErrors();
+      setServerErrors({});
+      setGeneralError('');
       setShowSuccess(false);
-      setShowError('');
     }
   }, [isOpen, service]);
 
-  const handleInputChange = (field: keyof ServiceFormData, value: string | number) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validate form data
-    const validation = ValidationService.validateService(formData);
-    if (!validation.success) {
-      setErrors(validation.errors);
-      return;
-    }
-
-    setIsSubmitting(true);
-    setErrors({});
-    setShowError('');
+  const handleSubmit = async (data: ServiceFormData) => {
+    setServerErrors({});
+    setGeneralError('');
 
     try {
       if (service) {
         // Update existing service
         const updateData: ServiceUpdateData = {
-          name: formData.name,
-          description: formData.description,
-          price: formData.price,
+          name: data.name,
+          description: data.description,
+          price: data.price,
         };
         await serviceRepository.updateService(service.id, updateData);
         setShowSuccess(true);
@@ -100,9 +117,9 @@ function ServiceForm({ isOpen, onClose, service, onSuccess }: ServiceFormProps) 
       } else {
         // Create new service
         const createData: ServiceCreateData = {
-          name: formData.name,
-          description: formData.description,
-          price: formData.price,
+          name: data.name,
+          description: data.description,
+          price: data.price,
         };
         await serviceRepository.createService(createData);
         setShowSuccess(true);
@@ -111,11 +128,19 @@ function ServiceForm({ isOpen, onClose, service, onSuccess }: ServiceFormProps) 
           onClose();
         }, 1000);
       }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
-      setShowError(errorMessage);
-    } finally {
-      setIsSubmitting(false);
+    } catch (error: any) {
+      // Handle server validation errors
+      if (ServerValidationService.isValidationError(error)) {
+        const { fieldErrors, generalError } = ServerValidationService.handleServerValidationError(error);
+        setServerErrors(fieldErrors);
+        if (generalError) {
+          setGeneralError(generalError);
+        }
+      } else {
+        // Handle other errors
+        const errorMessage = ServerValidationService.getUserFriendlyErrorMessage(error);
+        setGeneralError(errorMessage);
+      }
     }
   };
 
@@ -154,73 +179,82 @@ function ServiceForm({ isOpen, onClose, service, onSuccess }: ServiceFormProps) 
           </Box>
         )}
 
-        {showError && (
-          <Box p={4} bg="red.50" border="1px" borderColor="red.200" borderRadius="md" color="red.700" mb={4}>
-            {showError}
-          </Box>
-        )}
+        {/* Display server validation errors */}
+        <ValidationErrorDisplay
+          errors={serverErrors}
+          generalError={generalError}
+          title="Please fix the following issues:"
+        />
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={form.handleSubmit(handleSubmit)}>
           <VStack gap={4}>
-            <Box w="full">
-              <Text fontSize="sm" fontWeight="medium" mb={2}>Service Name</Text>
-              <Input
-                value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-                placeholder="Enter service name"
-                borderColor={errors.name ? 'red.500' : 'gray.300'}
-              />
-              {errors.name && (
-                <Text color="red.500" fontSize="sm" mt={1}>
-                  {errors.name}
-                </Text>
-              )}
-            </Box>
+            <TextField
+              label="Service Name"
+              placeholder="Enter a descriptive service name"
+              value={form.values.name}
+              onChange={(value) => {
+                form.setValue('name', value);
+                form.validateField('name', 'onChange');
+              }}
+              onBlur={() => {
+                form.setTouched('name');
+                form.validateField('name', 'onBlur');
+              }}
+              error={form.touched.name ? form.errors.name || serverErrors.name : undefined}
+              isRequired
+              maxLength={100}
+              helperText="Choose a clear, descriptive name for your service"
+            />
 
-            <Box w="full">
-              <Text fontSize="sm" fontWeight="medium" mb={2}>Description</Text>
-              <Textarea
-                value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                placeholder="Describe your service"
-                rows={4}
-                borderColor={errors.description ? 'red.500' : 'gray.300'}
-              />
-              {errors.description && (
-                <Text color="red.500" fontSize="sm" mt={1}>
-                  {errors.description}
-                </Text>
-              )}
-            </Box>
+            <TextAreaField
+              label="Service Description"
+              placeholder="Describe what your service includes, what clients can expect, and any important details"
+              value={form.values.description}
+              onChange={(value) => {
+                form.setValue('description', value);
+                form.validateField('description', 'onChange');
+              }}
+              onBlur={() => {
+                form.setTouched('description');
+                form.validateField('description', 'onBlur');
+              }}
+              error={form.touched.description ? form.errors.description || serverErrors.description : undefined}
+              isRequired
+              rows={4}
+              maxLength={500}
+              helperText="Provide detailed information to help clients understand your service"
+            />
 
-            <Box w="full">
-              <Text fontSize="sm" fontWeight="medium" mb={2}>Price (€)</Text>
-              <Input
-                type="number"
-                value={formData.price}
-                onChange={(e) => handleInputChange('price', parseFloat(e.target.value) || 0)}
-                placeholder="0.00"
-                step="0.01"
-                min="0"
-                max="10000"
-                borderColor={errors.price ? 'red.500' : 'gray.300'}
-              />
-              {errors.price && (
-                <Text color="red.500" fontSize="sm" mt={1}>
-                  {errors.price}
-                </Text>
-              )}
-            </Box>
+            <NumberField
+              label="Price (€)"
+              placeholder="0.00"
+              value={form.values.price}
+              onChange={(value) => {
+                form.setValue('price', value);
+                form.validateField('price', 'onChange');
+              }}
+              onBlur={() => {
+                form.setTouched('price');
+                form.validateField('price', 'onBlur');
+              }}
+              error={form.touched.price ? form.errors.price || serverErrors.price : undefined}
+              isRequired
+              min={0.01}
+              max={10000}
+              step={0.01}
+              helperText="Set a competitive price for your service (maximum €10,000)"
+            />
 
             <HStack w="full" justifyContent="flex-end" gap={3}>
-              <Button variant="outline" onClick={onClose}>
+              <Button variant="outline" onClick={onClose} disabled={form.isSubmitting}>
                 Cancel
               </Button>
               <Button
                 type="submit"
                 colorPalette="blue"
-                loading={isSubmitting}
+                loading={form.isSubmitting}
                 loadingText={service ? 'Updating...' : 'Creating...'}
+                disabled={!form.isValid && Object.keys(form.touched).length > 0}
               >
                 {service ? 'Update Service' : 'Create Service'}
               </Button>

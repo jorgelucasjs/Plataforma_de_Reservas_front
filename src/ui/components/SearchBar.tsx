@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import {
   Box,
   Input,
@@ -6,6 +6,9 @@ import {
   InputElement,
 } from '@chakra-ui/react';
 import { MdSearch, MdClear } from 'react-icons/md';
+import { useResponsive } from '../../hooks/useResponsive';
+import { touchTargets } from '../../utils/responsive';
+import { useDebounce, usePerformanceMeasure } from '../../hooks/usePerformance';
 
 interface SearchBarProps {
   placeholder?: string;
@@ -19,7 +22,7 @@ interface SearchBarProps {
   shortcutKey?: string;
 }
 
-export function SearchBar({
+export const SearchBar = memo(function SearchBar({
   placeholder = "Search...",
   value,
   onChange,
@@ -32,32 +35,24 @@ export function SearchBar({
 }: SearchBarProps) {
   const [internalValue, setInternalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const { isMobile, isTouch } = useResponsive();
+  const { measureFunction } = usePerformanceMeasure();
+  
+  // Use performance-optimized debounce
+  const debouncedValue = useDebounce(internalValue, debounceMs, 'search_input');
 
   // Sync internal value with external value
   useEffect(() => {
     setInternalValue(value);
   }, [value]);
 
-  // Debounced search effect
+  // Handle debounced value changes
   useEffect(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
+    if (debouncedValue !== value) {
+      onChange(debouncedValue);
+      onSearch?.(debouncedValue);
     }
-
-    timeoutRef.current = setTimeout(() => {
-      if (internalValue !== value) {
-        onChange(internalValue);
-        onSearch?.(internalValue);
-      }
-    }, debounceMs);
-
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, [internalValue, onChange, onSearch, debounceMs, value]);
+  }, [debouncedValue, value, onChange, onSearch]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -82,50 +77,86 @@ export function SearchBar({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [internalValue, shortcutKey]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = measureFunction((e: React.ChangeEvent<HTMLInputElement>) => {
     setInternalValue(e.target.value);
-  };
+  }, 'search_input_change');
 
-  const handleClear = () => {
+  const handleClear = measureFunction(() => {
     setInternalValue('');
     onChange('');
     onSearch?.('');
     inputRef.current?.focus();
-  };
+  }, 'search_clear');
 
   const showClear = showClearButton && internalValue.length > 0;
+  const responsiveSize = isMobile || isTouch ? 'lg' : size;
+  const iconSize = isMobile ? 20 : 16;
 
   return (
     <Box position="relative" w="full">
-      <InputGroup size={size}>
+      <InputGroup size={responsiveSize}>
         <Input
           ref={inputRef}
-          placeholder={`${placeholder} ${shortcutKey ? `(Ctrl+${shortcutKey.toUpperCase()})` : ''}`}
+          placeholder={isMobile ? placeholder : `${placeholder} ${shortcutKey ? `(Ctrl+${shortcutKey.toUpperCase()})` : ''}`}
           value={internalValue}
           onChange={handleInputChange}
-          pr={showClear ? "80px" : "40px"}
+          pr={showClear ? (isMobile ? "100px" : "80px") : (isMobile ? "60px" : "40px")}
+          minH={isTouch ? touchTargets.comfortable : 'auto'}
+          fontSize={{ base: '16px', md: 'md' }} // Prevent zoom on iOS
           _focus={{
             borderColor: 'blue.500',
-            boxShadow: '0 0 0 1px var(--chakra-colors-blue-500)',
+            boxShadow: '0 0 0 2px var(--chakra-colors-blue-200)',
+            outline: '2px solid',
+            outlineColor: 'blue.500',
+            outlineOffset: '2px'
+          }}
+          _placeholder={{
+            color: 'gray.400',
+            fontSize: { base: 'sm', md: 'md' }
           }}
         />
-        <InputElement placement="right" width={showClear ? "80px" : "40px"}>
+        <InputElement 
+          placement="right" 
+          width={showClear ? (isMobile ? "100px" : "80px") : (isMobile ? "60px" : "40px")}
+        >
           <Box display="flex" alignItems="center" gap={1}>
             {showClear && (
               <Box
                 as="button"
                 onClick={handleClear}
-                p={1}
+                p={isTouch ? 2 : 1}
                 borderRadius="sm"
                 _hover={{ bg: 'gray.100' }}
-                transition="background-color 0.2s"
+                _focus={{
+                  bg: 'gray.100',
+                  boxShadow: 'outline',
+                  outline: '2px solid',
+                  outlineColor: 'blue.500',
+                  outlineOffset: '1px'
+                }}
+                _active={{
+                  bg: 'gray.200',
+                  transform: 'scale(0.95)'
+                }}
+                transition="all 0.2s"
                 aria-label="Clear search"
+                minW={isTouch ? touchTargets.minimum : 'auto'}
+                minH={isTouch ? touchTargets.minimum : 'auto'}
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
               >
-                <MdClear size={16} />
+                <MdClear size={iconSize} />
               </Box>
             )}
-            <Box color="gray.400">
-              <MdSearch size={16} />
+            <Box 
+              color="gray.400"
+              p={isTouch ? 1 : 0}
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+            >
+              <MdSearch size={iconSize} />
             </Box>
           </Box>
         </InputElement>
@@ -143,10 +174,11 @@ export function SearchBar({
           alignItems="center"
           justifyContent="center"
           borderRadius="md"
+          zIndex={1}
         >
           <Box
-            w="4"
-            h="4"
+            w={isMobile ? "6" : "4"}
+            h={isMobile ? "6" : "4"}
             border="2px solid"
             borderColor="blue.200"
             borderTopColor="blue.500"
@@ -157,4 +189,4 @@ export function SearchBar({
       )}
     </Box>
   );
-}
+});

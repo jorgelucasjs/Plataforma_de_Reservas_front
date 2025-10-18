@@ -3,6 +3,9 @@
 import type { AppError } from '../types/error';
 import { ErrorType } from '../types/error';
 import { tokenService } from './tokenService';
+import { globalErrorService } from './globalErrorService';
+import { retryService } from './retryService';
+import { cacheService, staticDataCache } from './cacheService';
 
 // Helper function to create AppError objects
 function createAppError(error: AppError): AppError {
@@ -23,6 +26,11 @@ interface ApiClientConfig {
   baseURL: string;
   timeout: number;
   headers?: Record<string, string>;
+  enableRetry?: boolean;
+  enableGlobalErrorHandling?: boolean;
+  maxRetries?: number;
+  enableCaching?: boolean;
+  defaultCacheTTL?: number;
 }
 
 // Default configuration
@@ -32,6 +40,11 @@ const DEFAULT_CONFIG: ApiClientConfig = {
   headers: {
     'Content-Type': 'application/json',
   },
+  enableRetry: true,
+  enableGlobalErrorHandling: true,
+  maxRetries: 3,
+  enableCaching: true,
+  defaultCacheTTL: 5 * 60 * 1000, // 5 minutes
 };
 
 class ApiClient {
@@ -168,112 +181,185 @@ class ApiClient {
     });
   }
 
-  // HTTP Methods
-  async get<T>(url: string, options: RequestInit = {}): Promise<T> {
-    const [fullUrl, requestOptions] = await this.prepareRequest(url, {
-      ...options,
-      method: 'GET',
-    });
+  // Execute request with optional retry and error handling
+  private async executeRequest<T>(
+    url: string,
+    options: RequestInit = {},
+    context?: string
+  ): Promise<T> {
+    const requestFn = async (): Promise<T> => {
+      const [fullUrl, requestOptions] = await this.prepareRequest(url, options);
+      
+      try {
+        const response = await fetch(fullUrl, requestOptions);
+        return this.handleResponse<T>(response);
+      } catch (error) {
+        if (error && typeof error === 'object' && 'type' in error) {
+          throw error;
+        }
+        throw createAppError({
+          type: ErrorType.NETWORK_ERROR,
+          message: 'Network request failed',
+          details: error,
+        });
+      }
+    };
 
     try {
-      const response = await fetch(fullUrl, requestOptions);
-      return this.handleResponse<T>(response);
-    } catch (error) {
-      if (error && typeof error === 'object' && 'type' in error) {
-        throw error;
+      if (this.config.enableRetry) {
+        return await retryService.retryApiCall(
+          requestFn,
+          context || `${options.method || 'GET'} ${url}`,
+          {
+            maxRetries: this.config.maxRetries,
+            onRetry: (error, attempt) => {
+              console.log(`Retrying request ${context || url} (attempt ${attempt}):`, error.message);
+            },
+          }
+        );
+      } else {
+        return await requestFn();
       }
-      throw createAppError({
-        type: ErrorType.NETWORK_ERROR,
-        message: 'Network request failed',
-        details: error,
-      });
+    } catch (error) {
+      if (this.config.enableGlobalErrorHandling) {
+        const { generalError } = globalErrorService.handleApiError(error, { url, method: options.method });
+        if (generalError) {
+          // Error has been handled globally, re-throw for local handling
+          throw error;
+        }
+      }
+      throw error;
     }
+  }
+
+  // HTTP Methods with caching support
+  async get<T>(
+    url: string, 
+    options: RequestInit & { 
+      cache?: boolean; 
+      cacheTTL?: number; 
+      cacheKey?: string;
+      useStaleWhileRevalidate?: boolean;
+    } = {}
+  ): Promise<T> {
+    const { 
+      cache = this.config.enableCaching, 
+      cacheTTL = this.config.defaultCacheTTL,
+      cacheKey,
+      useStaleWhileRevalidate = true,
+      ...requestOptions 
+    } = options;
+
+    // Use caching for GET requests if enabled
+    if (cache && requestOptions.method !== 'POST') {
+      const key = cacheKey || `${url}:${JSON.stringify(requestOptions)}`;
+      
+      if (useStaleWhileRevalidate) {
+        return cacheService.getWithSWR(
+          key,
+          () => this.executeRequest<T>(url, { ...requestOptions, method: 'GET' }, `GET ${url}`),
+          { ttl: cacheTTL }
+        );
+      } else {
+        const cached = cacheService.get<T>(key);
+        if (cached) return cached;
+        
+        const result = await this.executeRequest<T>(url, { ...requestOptions, method: 'GET' }, `GET ${url}`);
+        cacheService.set(key, result, cacheTTL);
+        return result;
+      }
+    }
+
+    return this.executeRequest<T>(url, { ...requestOptions, method: 'GET' }, `GET ${url}`);
   }
 
   async post<T>(url: string, data?: any, options: RequestInit = {}): Promise<T> {
-    const [fullUrl, requestOptions] = await this.prepareRequest(url, {
-      ...options,
-      method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
-    });
-
-    try {
-      const response = await fetch(fullUrl, requestOptions);
-      return this.handleResponse<T>(response);
-    } catch (error) {
-      if (error && typeof error === 'object' && 'type' in error) {
-        throw error;
-      }
-      throw createAppError({
-        type: ErrorType.NETWORK_ERROR,
-        message: 'Network request failed',
-        details: error,
-      });
-    }
+    return this.executeRequest<T>(
+      url,
+      {
+        ...options,
+        method: 'POST',
+        body: data ? JSON.stringify(data) : undefined,
+      },
+      `POST ${url}`
+    );
   }
 
   async put<T>(url: string, data?: any, options: RequestInit = {}): Promise<T> {
-    const [fullUrl, requestOptions] = await this.prepareRequest(url, {
-      ...options,
-      method: 'PUT',
-      body: data ? JSON.stringify(data) : undefined,
-    });
-
-    try {
-      const response = await fetch(fullUrl, requestOptions);
-      return this.handleResponse<T>(response);
-    } catch (error) {
-      if (error && typeof error === 'object' && 'type' in error) {
-        throw error;
-      }
-      throw createAppError({
-        type: ErrorType.NETWORK_ERROR,
-        message: 'Network request failed',
-        details: error,
-      });
-    }
+    return this.executeRequest<T>(
+      url,
+      {
+        ...options,
+        method: 'PUT',
+        body: data ? JSON.stringify(data) : undefined,
+      },
+      `PUT ${url}`
+    );
   }
 
   async patch<T>(url: string, data?: any, options: RequestInit = {}): Promise<T> {
-    const [fullUrl, requestOptions] = await this.prepareRequest(url, {
-      ...options,
-      method: 'PATCH',
-      body: data ? JSON.stringify(data) : undefined,
-    });
-
-    try {
-      const response = await fetch(fullUrl, requestOptions);
-      return this.handleResponse<T>(response);
-    } catch (error) {
-      if (error && typeof error === 'object' && 'type' in error) {
-        throw error;
-      }
-      throw createAppError({
-        type: ErrorType.NETWORK_ERROR,
-        message: 'Network request failed',
-        details: error,
-      });
-    }
+    return this.executeRequest<T>(
+      url,
+      {
+        ...options,
+        method: 'PATCH',
+        body: data ? JSON.stringify(data) : undefined,
+      },
+      `PATCH ${url}`
+    );
   }
 
   async delete<T>(url: string, options: RequestInit = {}): Promise<T> {
-    const [fullUrl, requestOptions] = await this.prepareRequest(url, {
-      ...options,
-      method: 'DELETE',
-    });
+    return this.executeRequest<T>(url, { ...options, method: 'DELETE' }, `DELETE ${url}`);
+  }
 
+  // Utility methods for configuration
+  enableRetry(enabled: boolean = true): void {
+    this.config.enableRetry = enabled;
+  }
+
+  enableGlobalErrorHandling(enabled: boolean = true): void {
+    this.config.enableGlobalErrorHandling = enabled;
+  }
+
+  enableCaching(enabled: boolean = true): void {
+    this.config.enableCaching = enabled;
+  }
+
+  setMaxRetries(maxRetries: number): void {
+    this.config.maxRetries = maxRetries;
+  }
+
+  setCacheTTL(ttl: number): void {
+    this.config.defaultCacheTTL = ttl;
+  }
+
+  // Cache management methods
+  clearCache(): void {
+    cacheService.clear();
+    staticDataCache.clear();
+  }
+
+  invalidateCache(pattern: string | RegExp): number {
+    return cacheService.invalidatePattern(pattern) + staticDataCache.invalidatePattern(pattern);
+  }
+
+  getCacheStats() {
+    return {
+      main: cacheService.getStats(),
+      static: staticDataCache.getStats(),
+    };
+  }
+
+  // Health check method
+  async healthCheck(): Promise<{ status: string; timestamp: string }> {
     try {
-      const response = await fetch(fullUrl, requestOptions);
-      return this.handleResponse<T>(response);
+      return await this.get('/health');
     } catch (error) {
-      if (error && typeof error === 'object' && 'type' in error) {
-        throw error;
-      }
-      throw createAppError({
-        type: ErrorType.NETWORK_ERROR,
-        message: 'Network request failed',
-        details: error,
-      });
+      return {
+        status: 'error',
+        timestamp: new Date().toISOString(),
+      };
     }
   }
 }

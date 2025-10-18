@@ -284,7 +284,11 @@ export class ValidationService {
     }
     
     if (amount > userBalance) {
-      return { valid: false, message: 'Insufficient balance for this booking' };
+      const shortfall = amount - userBalance;
+      return { 
+        valid: false, 
+        message: `Insufficient balance. You need €${shortfall.toFixed(2)} more to complete this booking.` 
+      };
     }
     
     return { valid: true };
@@ -305,6 +309,106 @@ export class ValidationService {
     }
     
     return { valid: true };
+  }
+
+  // Real-time field validation
+  static validateFieldRealTime(fieldName: string, value: any, formData?: any): { valid: boolean; message?: string } {
+    switch (fieldName) {
+      case 'email':
+        if (!value) return { valid: true }; // Let required validation handle empty values
+        return { valid: this.validateEmail(value), message: 'Please enter a valid email address' };
+      
+      case 'nif':
+        if (!value) return { valid: true };
+        return { valid: this.validateNIF(value), message: 'Please enter a valid NIF' };
+      
+      case 'password':
+        if (!value) return { valid: true };
+        return { valid: this.validatePassword(value), message: 'Password must be at least 8 characters with letters and numbers' };
+      
+      case 'confirmPassword':
+        if (!value || !formData?.password) return { valid: true };
+        return { valid: value === formData.password, message: 'Passwords do not match' };
+      
+      case 'fullName':
+        if (!value) return { valid: true };
+        if (value.length < 2) return { valid: false, message: 'Name must be at least 2 characters' };
+        if (value.length > 100) return { valid: false, message: 'Name must not exceed 100 characters' };
+        if (!/^[a-zA-ZÀ-ÿ\s]+$/.test(value)) return { valid: false, message: 'Name can only contain letters and spaces' };
+        return { valid: true };
+      
+      case 'serviceName':
+      case 'name':
+        if (!value) return { valid: true };
+        if (value.length < 3) return { valid: false, message: 'Service name must be at least 3 characters' };
+        if (value.length > 100) return { valid: false, message: 'Service name must not exceed 100 characters' };
+        return { valid: true };
+      
+      case 'description':
+        if (!value) return { valid: true };
+        if (value.length < 10) return { valid: false, message: 'Description must be at least 10 characters' };
+        if (value.length > 500) return { valid: false, message: 'Description must not exceed 500 characters' };
+        return { valid: true };
+      
+      case 'price':
+        if (value === null || value === undefined || value === '') return { valid: true };
+        const priceValidation = this.validateServicePrice(Number(value));
+        return priceValidation;
+      
+      default:
+        return { valid: true };
+    }
+  }
+
+  // Enhanced form validation with detailed error messages
+  static validateFormField(fieldName: string, value: any, isRequired = false, formData?: any): string | null {
+    // Check required validation first
+    if (isRequired && (!value || (typeof value === 'string' && value.trim() === ''))) {
+      return `${this.formatFieldName(fieldName)} is required`;
+    }
+
+    // Skip other validations if field is empty and not required
+    if (!value || (typeof value === 'string' && value.trim() === '')) {
+      return null;
+    }
+
+    const validation = this.validateFieldRealTime(fieldName, value, formData);
+    return validation.valid ? null : validation.message || 'Invalid value';
+  }
+
+  // Helper to format field names for display
+  static formatFieldName(fieldName: string): string {
+    const fieldNameMap: Record<string, string> = {
+      fullName: 'Full Name',
+      confirmPassword: 'Confirm Password',
+      userType: 'User Type',
+      serviceName: 'Service Name',
+      minPrice: 'Minimum Price',
+      maxPrice: 'Maximum Price',
+      startDate: 'Start Date',
+      endDate: 'End Date',
+      minAmount: 'Minimum Amount',
+      maxAmount: 'Maximum Amount',
+    };
+
+    return fieldNameMap[fieldName] || fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
+  }
+
+  // Validate multiple fields at once
+  static validateMultipleFields(
+    fields: Array<{ name: string; value: any; required?: boolean }>,
+    formData?: any
+  ): Record<string, string> {
+    const errors: Record<string, string> = {};
+
+    fields.forEach(({ name, value, required = false }) => {
+      const error = this.validateFormField(name, value, required, formData);
+      if (error) {
+        errors[name] = error;
+      }
+    });
+
+    return errors;
   }
 }
 

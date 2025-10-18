@@ -6,8 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:analyze": "tsc -b && vite build --mode analyze",
+    "build:profile": "tsc -b && vite build --mode profile",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "analyze": "npx vite-bundle-analyzer dist",
+    "perf:test": "npm run build && npm run preview"
   },
   "dependencies": {
     "@chakra-ui/react": "^3.27.1",

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import {
   Box,
   Heading,
@@ -6,11 +7,18 @@ import {
   Button,
   HStack,
   Flex,
-  Spacer,
 } from '@chakra-ui/react';
 import { MdEdit, MdDelete } from 'react-icons/md';
 import type { Service } from '../../types/service';
-import { formatCurrency, formatDate, truncateText } from '../../utils/formatters';
+import { formatCurrency, formatDate, truncateText } from '../../services/memoizationService';
+import { useResponsive } from '../../hooks/useResponsive';
+import { useRenderPerformance } from '../../hooks/usePerformance';
+import { 
+  cardSizes, 
+  touchTargets, 
+  responsiveSpacing,
+  responsiveFontSizes 
+} from '../../utils/responsive';
 
 interface ServiceCardProps {
   service: Service;
@@ -21,7 +29,7 @@ interface ServiceCardProps {
   isLoading?: boolean;
 }
 
-export function ServiceCard({ 
+export const ServiceCard = memo(function ServiceCard({ 
   service, 
   onEdit, 
   onDelete, 
@@ -29,70 +37,146 @@ export function ServiceCard({
   isProvider = false,
   isLoading = false
 }: ServiceCardProps) {
+  const { isMobile, isTouch } = useResponsive();
+  useRenderPerformance('ServiceCard');
+
   return (
     <Box
       border="1px"
       borderColor="gray.200"
-      borderRadius="lg"
-      p={4}
+      borderRadius={cardSizes.borderRadius}
+      p={cardSizes.padding}
       bg="white"
-      _hover={{ shadow: 'md', borderColor: 'blue.300' }}
-      transition="all 0.2s"
+      _hover={{ 
+        shadow: 'md', 
+        borderColor: 'blue.300',
+        transform: 'translateY(-2px)'
+      }}
+      transition="all 0.2s ease-in-out"
       role="article"
       tabIndex={0}
-      _focus={{ shadow: 'outline', borderColor: 'blue.500' }}
+      _focus={{ 
+        shadow: 'outline',
+        outline: '2px solid',
+        outlineColor: 'blue.500',
+        outlineOffset: '2px',
+        borderColor: 'blue.500'
+      }}
       opacity={isLoading ? 0.6 : 1}
       pointerEvents={isLoading ? 'none' : 'auto'}
+      cursor={isLoading ? 'not-allowed' : 'default'}
+      w="full"
+      h="full"
+      display="flex"
+      flexDirection="column"
     >
-      <Flex mb={3}>
-        <Box>
-          <Heading size="md" mb={1} color="gray.800">
+      <Flex mb={responsiveSpacing.sm} align="start" gap={2}>
+        <Box flex={1} minW={0}>
+          <Heading 
+            size={responsiveFontSizes.md} 
+            mb={1} 
+            color="gray.800"
+            noOfLines={2}
+            lineHeight="shorter"
+          >
             {service.name}
           </Heading>
-          <Text fontSize="sm" color="gray.500">
+          <Text 
+            fontSize={responsiveFontSizes.xs} 
+            color="gray.500"
+            noOfLines={1}
+          >
             {isProvider ? `Created ${formatDate(service.createdAt)}` : `By ${service.providerName}`}
           </Text>
         </Box>
-        <Spacer />
-        <Badge colorPalette={service.isActive ? 'green' : 'gray'} variant="subtle">
+        <Badge 
+          colorPalette={service.isActive ? 'green' : 'gray'} 
+          variant="subtle"
+          size={isMobile ? 'md' : 'sm'}
+          flexShrink={0}
+        >
           {service.isActive ? 'Active' : 'Inactive'}
         </Badge>
       </Flex>
 
-      <Text color="gray.600" mb={3} lineHeight="1.5">
-        {truncateText(service.description, 150)}
+      <Text 
+        color="gray.600" 
+        mb={responsiveSpacing.sm} 
+        lineHeight="1.5"
+        fontSize={responsiveFontSizes.sm}
+        noOfLines={{ base: 3, md: 4 }}
+        flex={1}
+      >
+        {truncateText(service.description, isMobile ? 120 : 150)}
       </Text>
       
-      <Text fontSize="xl" fontWeight="bold" color="blue.600" mb={4}>
+      <Text 
+        fontSize={responsiveFontSizes.xl} 
+        fontWeight="bold" 
+        color="blue.600" 
+        mb={responsiveSpacing.md}
+      >
         {formatCurrency(service.price)}
       </Text>
 
       {isProvider ? (
-        <HStack gap={2}>
+        <HStack 
+          gap={responsiveSpacing.sm}
+          flexDirection={{ base: 'column', sm: 'row' }}
+          w="full"
+        >
           <Button
-            size="sm"
+            size={isMobile || isTouch ? 'md' : 'sm'}
             variant="outline"
             colorPalette="blue"
             onClick={() => onEdit?.(service)}
             disabled={isLoading}
+            flex={{ base: 1, sm: 'auto' }}
+            w={{ base: 'full', sm: 'auto' }}
+            minH={isTouch ? touchTargets.comfortable : 'auto'}
+            _focus={{
+              boxShadow: 'outline',
+              outline: '2px solid',
+              outlineColor: 'blue.500',
+              outlineOffset: '2px'
+            }}
+            _active={{
+              transform: 'scale(0.98)'
+            }}
           >
-            <MdEdit />
-            Edit
+            <HStack gap={2}>
+              <MdEdit size={isMobile ? 18 : 16} />
+              <Text>Edit</Text>
+            </HStack>
           </Button>
           <Button
-            size="sm"
+            size={isMobile || isTouch ? 'md' : 'sm'}
             variant="outline"
             colorPalette="red"
             onClick={() => onDelete?.(service)}
             disabled={isLoading}
+            flex={{ base: 1, sm: 'auto' }}
+            w={{ base: 'full', sm: 'auto' }}
+            minH={isTouch ? touchTargets.comfortable : 'auto'}
+            _focus={{
+              boxShadow: 'outline',
+              outline: '2px solid',
+              outlineColor: 'red.500',
+              outlineOffset: '2px'
+            }}
+            _active={{
+              transform: 'scale(0.98)'
+            }}
           >
-            <MdDelete />
-            Delete
+            <HStack gap={2}>
+              <MdDelete size={isMobile ? 18 : 16} />
+              <Text>Delete</Text>
+            </HStack>
           </Button>
         </HStack>
       ) : (
         <Button
-          size="sm"
+          size={isMobile || isTouch ? 'md' : 'sm'}
           colorPalette={service.isActive ? "green" : "gray"}
           w="full"
           onClick={() => {
@@ -102,12 +186,27 @@ export function ServiceCard({
           }}
           disabled={!service.isActive || isLoading}
           aria-label={`Book ${service.name} for ${formatCurrency(service.price)}`}
-          _hover={service.isActive ? { bg: 'green.600', transform: 'translateY(-1px)' } : {}}
+          minH={isTouch ? touchTargets.comfortable : 'auto'}
+          _hover={service.isActive ? { 
+            bg: 'green.600', 
+            transform: 'translateY(-1px)',
+            shadow: 'md'
+          } : {}}
+          _focus={{
+            boxShadow: 'outline',
+            outline: '2px solid',
+            outlineColor: service.isActive ? 'green.500' : 'gray.500',
+            outlineOffset: '2px'
+          }}
+          _active={{
+            transform: 'scale(0.98)'
+          }}
           transition="all 0.2s ease-in-out"
+          fontSize={responsiveFontSizes.sm}
         >
           {service.isActive ? '📅 Book Service' : '❌ Service Unavailable'}
         </Button>
       )}
     </Box>
   );
-}
+});

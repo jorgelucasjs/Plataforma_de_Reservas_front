@@ -1,15 +1,28 @@
-import { AppLayout } from '@/ui/layouts/AppLayout';
-import { AuthLayout } from '@/ui/layouts/AuthLayout';
-import { BookingsPage } from '@/ui/pages/BookingsPage';
-import { DashboardPage } from '@/ui/pages/DashboardPage';
-import { LoginPage } from '@/ui/pages/LoginPage';
-import { ProfilePage } from '@/ui/pages/ProfilePage';
-import { RegisterPage } from '@/ui/pages/RegisterPage';
-import { TransactionHistoryPage } from '@/ui/pages/TransactionHistoryPage';
+import { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute';
 import { RoleBasedRoute } from './RoleBasedRoute';
-import { ServicesPage } from '@/ui/pages/ServicesPage';
+import { LoadingSpinner } from '@/ui/components/LoadingSpinner';
+
+// Lazy load layouts
+const AppLayout = lazy(() => import('@/ui/layouts/AppLayout').then(module => ({ default: module.AppLayout })));
+const AuthLayout = lazy(() => import('@/ui/layouts/AuthLayout').then(module => ({ default: module.AuthLayout })));
+
+// Lazy load pages
+const LoginPage = lazy(() => import('@/ui/pages/LoginPage').then(module => ({ default: module.LoginPage })));
+const RegisterPage = lazy(() => import('@/ui/pages/RegisterPage').then(module => ({ default: module.RegisterPage })));
+const DashboardPage = lazy(() => import('@/ui/pages/DashboardPage').then(module => ({ default: module.DashboardPage })));
+const ServicesPage = lazy(() => import('@/ui/pages/ServicesPage').then(module => ({ default: module.ServicesPage })));
+const BookingsPage = lazy(() => import('@/ui/pages/BookingsPage').then(module => ({ default: module.BookingsPage })));
+const TransactionHistoryPage = lazy(() => import('@/ui/pages/TransactionHistoryPage').then(module => ({ default: module.TransactionHistoryPage })));
+const ProfilePage = lazy(() => import('@/ui/pages/ProfilePage').then(module => ({ default: module.ProfilePage })));
+
+// Wrapper component for lazy loaded components with loading fallback
+const LazyWrapper = ({ children }: { children: React.ReactNode }) => (
+  <Suspense fallback={<LoadingSpinner size="lg" />}>
+    {children}
+  </Suspense>
+);
 
 
 export const router = createBrowserRouter([
@@ -19,15 +32,27 @@ export const router = createBrowserRouter([
     },
     {
         path: '/auth',
-        element: <AuthLayout />,
+        element: (
+            <LazyWrapper>
+                <AuthLayout />
+            </LazyWrapper>
+        ),
         children: [
             {
                 path: 'login',
-                element: <LoginPage />,
+                element: (
+                    <LazyWrapper>
+                        <LoginPage />
+                    </LazyWrapper>
+                ),
             },
             {
                 path: 'register',
-                element: <RegisterPage />,
+                element: (
+                    <LazyWrapper>
+                        <RegisterPage />
+                    </LazyWrapper>
+                ),
             },
             {
                 index: true,
@@ -39,33 +64,53 @@ export const router = createBrowserRouter([
         path: '/',
         element: (
             <ProtectedRoute>
-                <AppLayout />
+                <LazyWrapper>
+                    <AppLayout />
+                </LazyWrapper>
             </ProtectedRoute>
         ),
         children: [
             {
                 path: 'dashboard',
-                element: <DashboardPage />,
+                element: (
+                    <LazyWrapper>
+                        <DashboardPage />
+                    </LazyWrapper>
+                ),
             },
             {
                 path: 'services',
                 element: (
                     <RoleBasedRoute allowedRoles={['client', 'provider']}>
-                        <ServicesPage />
+                        <LazyWrapper>
+                            <ServicesPage />
+                        </LazyWrapper>
                     </RoleBasedRoute>
                 ),
             },
             {
                 path: 'bookings',
-                element: <BookingsPage />,
+                element: (
+                    <LazyWrapper>
+                        <BookingsPage />
+                    </LazyWrapper>
+                ),
             },
             {
                 path: 'transactions',
-                element: <TransactionHistoryPage />,
+                element: (
+                    <LazyWrapper>
+                        <TransactionHistoryPage />
+                    </LazyWrapper>
+                ),
             },
             {
                 path: 'profile',
-                element: <ProfilePage />,
+                element: (
+                    <LazyWrapper>
+                        <ProfilePage />
+                    </LazyWrapper>
+                ),
             },
         ],
     },
