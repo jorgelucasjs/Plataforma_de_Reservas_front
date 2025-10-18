@@ -52,10 +52,10 @@ export function useFormValidation<T extends FormState>(
   config: FormConfig
 ): UseFormValidationReturn<T> {
   // Initialize form state
-  const initialValues = Object.keys(config).reduce((acc, key) => {
-    acc[key] = config[key].initialValue;
-    return acc;
-  }, {} as T);
+  const initialValues = Object.keys(config).reduce((acc, key) => ({
+    ...acc,
+    [key]: config[key].initialValue,
+  }), {}) as T;
 
   const [values, setValues] = useState<T>(initialValues);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -99,14 +99,14 @@ export function useFormValidation<T extends FormState>(
 
   // Validate individual field
   const validateField = useCallback(async (
-    field: keyof T, 
+    field: keyof T,
     trigger: 'onChange' | 'onBlur' | 'onSubmit' = 'onSubmit'
   ): Promise<boolean> => {
     const fieldConfig = config[field as string];
     if (!fieldConfig) return true;
 
     const value = values[field];
-    
+
     // Check required validation
     if (fieldConfig.required && (!value || (typeof value === 'string' && value.trim() === ''))) {
       const message = fieldConfig.requiredMessage || `${String(field)} is required`;
@@ -121,7 +121,7 @@ export function useFormValidation<T extends FormState>(
         if (rule.trigger && rule.trigger !== trigger) continue;
 
         const result = rule.validator(value, values);
-        
+
         if (result === false || typeof result === 'string') {
           const message = typeof result === 'string' ? result : rule.message || `${String(field)} is invalid`;
           setError(field, message);
@@ -141,7 +141,7 @@ export function useFormValidation<T extends FormState>(
     const validationResults = await Promise.all(
       fieldNames.map(field => validateField(field as keyof T, 'onSubmit'))
     );
-    
+
     return validationResults.every(result => result);
   }, [config, validateField]);
 
@@ -155,10 +155,10 @@ export function useFormValidation<T extends FormState>(
       }
 
       setIsSubmitting(true);
-      
+
       try {
         const isFormValid = await validateForm();
-        
+
         if (isFormValid) {
           await onSubmit(values);
         }
@@ -239,7 +239,7 @@ export const validationRules = {
       if (!value) return true; // Let required rule handle empty values
       return ValidationService.validatePassword(value);
     },
-    message: message || 'Palavra-passe deve ter pelo menos 8 caracteres com letras e números',
+    message: message || 'Palavra-passe deve ter pelo menos 8 caracteres',
     trigger: 'onBlur',
   }),
 

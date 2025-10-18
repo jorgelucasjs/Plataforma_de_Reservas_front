@@ -263,7 +263,7 @@ export function RegisterPage() {
                         w="full"
                         loading={form.isSubmitting || isLoading}
                         loadingText="A criar conta..."
-                        disabled={!form.isValid && Object.keys(form.touched).length > 0}
+                        //disabled={!form.isValid}
                     >
                         Criar Conta
                     </Button>

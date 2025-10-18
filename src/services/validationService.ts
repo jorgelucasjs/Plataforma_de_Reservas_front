@@ -2,28 +2,21 @@ import { z } from 'zod';
 
 // Custom validation functions
 const validateNIF = (nif: string): boolean => {
-  // Portuguese NIF validation
+  // NIF validation - allows numbers and letters, max 14 characters
   // Remove any spaces or special characters
   const cleanNIF = nif.replace(/\s/g, '');
-  
-  // Check if it's 9 digits
-  if (!/^\d{9}$/.test(cleanNIF)) {
+
+  // Check if it's alphanumeric and max 14 characters
+  if (!/^[A-Za-z0-9]{1,14}$/.test(cleanNIF)) {
     return false;
   }
-  
-  // Calculate check digit
-  const digits = cleanNIF.split('').map(Number);
-  const checkDigit = digits[8];
-  
-  let sum = 0;
-  for (let i = 0; i < 8; i++) {
-    sum += digits[i] * (9 - i);
+
+  // If it's empty, it's invalid
+  if (cleanNIF.length === 0) {
+    return false;
   }
-  
-  const remainder = sum % 11;
-  const expectedCheckDigit = remainder < 2 ? 0 : 11 - remainder;
-  
-  return checkDigit === expectedCheckDigit;
+
+  return true;
 };
 
 const validateEmail = (email: string): boolean => {
@@ -32,13 +25,13 @@ const validateEmail = (email: string): boolean => {
 };
 
 const validatePassword = (password: string): boolean => {
-  // At least 8 characters, with at least one letter and one number
-  return password.length >= 8 && /[A-Za-z]/.test(password) && /\d/.test(password);
+  // At least 8 characters - user can decide what characters to use
+  return password.length >= 8;
 };
 
 // Custom Zod refinements
 const nifValidation = z.string().refine(validateNIF, {
-  message: 'Formato de NIF inválido ou dígito de verificação incorreto',
+  message: 'NIF deve conter apenas números e letras (máximo 14 caracteres)',
 });
 
 const emailValidation = z.string().email('Formato de email inválido').refine(validateEmail, {
@@ -48,7 +41,7 @@ const emailValidation = z.string().email('Formato de email inválido').refine(va
 const passwordValidation = z.string()
   .min(8, 'Palavra-passe deve ter pelo menos 8 caracteres')
   .refine(validatePassword, {
-    message: 'Palavra-passe deve conter pelo menos uma letra e um número',
+    message: 'Palavra-passe deve ter pelo menos 8 caracteres',
   });
 
 // Authentication schemas
@@ -165,102 +158,102 @@ export class ValidationService {
   // Validate login form
   static validateLogin(data: unknown): { success: true; data: LoginFormData } | { success: false; errors: Record<string, string> } {
     const result = loginSchema.safeParse(data);
-    
+
     if (result.success) {
       return { success: true, data: result.data };
     }
-    
+
     const errors: Record<string, string> = {};
     result.error.issues.forEach((issue) => {
       const path = issue.path.join('.');
       errors[path] = issue.message;
     });
-    
+
     return { success: false, errors };
   }
 
   // Validate registration form
   static validateRegister(data: unknown): { success: true; data: RegisterFormData } | { success: false; errors: Record<string, string> } {
     const result = registerSchema.safeParse(data);
-    
+
     if (result.success) {
       return { success: true, data: result.data };
     }
-    
+
     const errors: Record<string, string> = {};
     result.error.issues.forEach((issue) => {
       const path = issue.path.join('.');
       errors[path] = issue.message;
     });
-    
+
     return { success: false, errors };
   }
 
   // Validate service form
   static validateService(data: unknown): { success: true; data: ServiceFormData } | { success: false; errors: Record<string, string> } {
     const result = serviceSchema.safeParse(data);
-    
+
     if (result.success) {
       return { success: true, data: result.data };
     }
-    
+
     const errors: Record<string, string> = {};
     result.error.issues.forEach((issue) => {
       const path = issue.path.join('.');
       errors[path] = issue.message;
     });
-    
+
     return { success: false, errors };
   }
 
   // Validate profile update form
   static validateProfileUpdate(data: unknown): { success: true; data: ProfileUpdateFormData } | { success: false; errors: Record<string, string> } {
     const result = profileUpdateSchema.safeParse(data);
-    
+
     if (result.success) {
       return { success: true, data: result.data };
     }
-    
+
     const errors: Record<string, string> = {};
     result.error.issues.forEach((issue) => {
       const path = issue.path.join('.');
       errors[path] = issue.message;
     });
-    
+
     return { success: false, errors };
   }
 
   // Validate service filters
   static validateServiceFilters(data: unknown): { success: true; data: ServiceFiltersData } | { success: false; errors: Record<string, string> } {
     const result = serviceFiltersSchema.safeParse(data);
-    
+
     if (result.success) {
       return { success: true, data: result.data };
     }
-    
+
     const errors: Record<string, string> = {};
     result.error.issues.forEach((issue) => {
       const path = issue.path.join('.');
       errors[path] = issue.message;
     });
-    
+
     return { success: false, errors };
   }
 
   // Validate transaction filters
   static validateTransactionFilters(data: unknown): { success: true; data: TransactionFiltersData } | { success: false; errors: Record<string, string> } {
     const result = transactionFiltersSchema.safeParse(data);
-    
+
     if (result.success) {
       return { success: true, data: result.data };
     }
-    
+
     const errors: Record<string, string> = {};
     result.error.issues.forEach((issue) => {
       const path = issue.path.join('.');
       errors[path] = issue.message;
     });
-    
+
     return { success: false, errors };
   }
 
@@ -282,15 +275,15 @@ export class ValidationService {
     if (amount <= 0) {
       return { valid: false, message: 'Booking amount must be greater than 0' };
     }
-    
+
     if (amount > userBalance) {
       const shortfall = amount - userBalance;
-      return { 
-        valid: false, 
-        message: `Insufficient balance. You need €${shortfall.toFixed(2)} more to complete this booking.` 
+      return {
+        valid: false,
+        message: `Insufficient balance. You need €${shortfall.toFixed(2)} more to complete this booking.`
       };
     }
-    
+
     return { valid: true };
   }
 
@@ -298,16 +291,16 @@ export class ValidationService {
     if (price <= 0) {
       return { valid: false, message: 'Service price must be greater than 0' };
     }
-    
+
     if (price > 10000) {
       return { valid: false, message: 'Service price cannot exceed €10,000' };
     }
-    
+
     // Check for more than 2 decimal places
     if (Math.round(price * 100) !== price * 100) {
       return { valid: false, message: 'Price can have at most 2 decimal places' };
     }
-    
+
     return { valid: true };
   }
 
@@ -317,44 +310,44 @@ export class ValidationService {
       case 'email':
         if (!value) return { valid: true }; // Let required validation handle empty values
         return { valid: this.validateEmail(value), message: 'Please enter a valid email address' };
-      
+
       case 'nif':
         if (!value) return { valid: true };
-        return { valid: this.validateNIF(value), message: 'Please enter a valid NIF' };
-      
+        return { valid: this.validateNIF(value), message: 'NIF deve conter apenas números e letras (máximo 14 caracteres)' };
+
       case 'password':
         if (!value) return { valid: true };
-        return { valid: this.validatePassword(value), message: 'Password must be at least 8 characters with letters and numbers' };
-      
+        return { valid: this.validatePassword(value), message: 'Palavra-passe deve ter pelo menos 8 caracteres' };
+
       case 'confirmPassword':
         if (!value || !formData?.password) return { valid: true };
         return { valid: value === formData.password, message: 'Passwords do not match' };
-      
+
       case 'fullName':
         if (!value) return { valid: true };
         if (value.length < 2) return { valid: false, message: 'Name must be at least 2 characters' };
         if (value.length > 100) return { valid: false, message: 'Name must not exceed 100 characters' };
         if (!/^[a-zA-ZÀ-ÿ\s]+$/.test(value)) return { valid: false, message: 'Name can only contain letters and spaces' };
         return { valid: true };
-      
+
       case 'serviceName':
       case 'name':
         if (!value) return { valid: true };
         if (value.length < 3) return { valid: false, message: 'Service name must be at least 3 characters' };
         if (value.length > 100) return { valid: false, message: 'Service name must not exceed 100 characters' };
         return { valid: true };
-      
+
       case 'description':
         if (!value) return { valid: true };
         if (value.length < 10) return { valid: false, message: 'Description must be at least 10 characters' };
         if (value.length > 500) return { valid: false, message: 'Description must not exceed 500 characters' };
         return { valid: true };
-      
+
       case 'price':
         if (value === null || value === undefined || value === '') return { valid: true };
         const priceValidation = this.validateServicePrice(Number(value));
         return priceValidation;
-      
+
       default:
         return { valid: true };
     }
