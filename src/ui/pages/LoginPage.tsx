@@ -13,7 +13,6 @@ import {
     IconButton,
 } from "@chakra-ui/react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
 import { toaster } from "../components/ui/toaster";
 import { APPCOLOR } from "@/utils/colors";
@@ -21,8 +20,6 @@ import { LuEye, LuEyeOff } from "react-icons/lu";
 import { InputGroup } from "../components/ui/input-group";
 
 export const LoginPage = () => {
-
-    const navigate = useNavigate();
     const { login, register, isLoading } = useAuthStore();
     const [loginData, setLoginData] = useState({ email: "", password: "" });
 
@@ -88,7 +85,7 @@ export const LoginPage = () => {
                 type: 'success',
                 duration: 3000
             })
-            navigate("/dashboard");
+            window.location.href = "/dashboard"
         } catch (error: any) {
 
 
@@ -117,7 +114,7 @@ export const LoginPage = () => {
                 type: 'success',
                 duration: 3000
             })
-            navigate("/dashboard");
+            window.location.href = "/dashboard"
         } catch (error: any) {
             console.log("error", error)
             toaster.create({
@@ -188,7 +185,7 @@ export const LoginPage = () => {
                                             onClick={() => setShowLoginPassword(!showLoginPassword)}
                                             aria-label={showLoginPassword ? "Ocultar senha" : "Mostrar senha"}
                                         >
-                                            {showLoginPassword ? <LuEyeOff color={APPCOLOR}/> : <LuEye color={APPCOLOR}/>}
+                                            {showLoginPassword ? <LuEyeOff color={APPCOLOR} /> : <LuEye color={APPCOLOR} />}
                                         </IconButton>
                                     }
                                 >

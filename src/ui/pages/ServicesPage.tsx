@@ -23,7 +23,7 @@ import { CURRENT_USER_INFO } from "@/utils/LocalstorageKeys";
 
 export const ServicesPage = () => {
     const navigate = useNavigate();
-    const user  = CURRENT_USER_INFO
+    const  user  = CURRENT_USER_INFO
     const { services, myServices, fetchServices, fetchServicesByProvider, deleteService, isLoading } = useServiceStore();
     const { createBooking } = useBookingStore();
     const [searchTerm, setSearchTerm] = useState("");
@@ -34,6 +34,8 @@ export const ServicesPage = () => {
 
     const onOpen = () => setIsOpen(true);
     const onClose = () => setIsOpen(false);
+
+    console.log("user", user)
 
     useEffect(() => {
         if (user?.userType === "provider" && user?.id) {
@@ -52,9 +54,9 @@ export const ServicesPage = () => {
         await fetchServices(params);
     };
 
-    const handleBookService = async (serviceId: string) => {
+    const handleBookService = async (serviceId: string, servicePrice: number) => {
         try {
-            await createBooking(serviceId);
+            await createBooking(serviceId, servicePrice);
             toaster.create({
                 title: "Serviço",
                 description: "Serviço contratado com sucesso!",
@@ -188,7 +190,7 @@ export const ServicesPage = () => {
                                                 colorScheme="green"
                                                 size="sm"
                                                 width="full"
-                                                onClick={() => handleBookService(service.id)}
+                                                onClick={() => handleBookService(service.id, service.price)}
                                             >
                                                 Contratar
                                             </Button>

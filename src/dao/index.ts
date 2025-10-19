@@ -17,7 +17,7 @@ export const authDao = {
 export const userDao = {
   getProfile: () => apiClient.get<User>("/users/profile"),
 
-  getBalance: () => apiClient.get<{ balance: number }>("/users/balance"),
+  getBalance: () => apiClient.get<{ data: { balance: number } }>("/users/balance"),
 };
 
 export const serviceDao = {
@@ -35,9 +35,9 @@ export const serviceDao = {
     sortOrder?: "asc" | "desc";
     limit?: number;
     offset?: number;
-  }) => apiClient.get<{ services: Service[]; total: number }>("/services", params),
+  }) => apiClient.get<{ data: { services: Service[]; total: number } }>("/services", params),
 
-  getMy: () => apiClient.get<{ services: Service[]; total: number }>("/services/my"),
+  getMy: () => apiClient.get<{ data: { services: Service[]; total: number } }>("/services/my"),
 
   getByProvider: (providerId: string) => 
     apiClient.get<{ data: { services: Service[]; total: number } }>(`/services/provider/${providerId}`),
@@ -49,10 +49,13 @@ export const serviceDao = {
 };
 
 export const bookingDao = {
-  create: (serviceId: string) =>
-    apiClient.post<Booking>("/bookings", { serviceId }),
+  create: (data: {
+    serviceId: string;
+    scheduledDate?: string;
+    notes?: string;
+  }) => apiClient.post<Booking>("/bookings", data),
 
-  getMy: () => apiClient.get<{ bookings: Booking[]; count: number; userType: string }>("/bookings/my"),
+  getMy: () => apiClient.get<{ data: { bookings: Booking[]; count: number; userType: string } }>("/bookings/my"),
 
   cancel: (id: string, reason?: string) =>
     apiClient.put(`/bookings/${id}/cancel`, { cancellationReason: reason }),
@@ -68,5 +71,5 @@ export const bookingDao = {
     sortOrder?: "asc" | "desc";
     limit?: number;
     offset?: number;
-  }) => apiClient.get<{ bookings: Booking[]; count: number }>("/bookings/history", params),
+  }) => apiClient.get<{ data: { bookings: Booking[]; count: number } }>("/bookings/history", params),
 };

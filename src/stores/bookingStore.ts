@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { bookingDao } from "../dao";
+import { bookingDao, userDao } from "../dao";
 import type { Booking } from "@/types";
 
 interface BookingStore {
@@ -8,7 +8,12 @@ interface BookingStore {
   isLoading: boolean;
   error: string | null;
 
-  createBooking: (serviceId: string) => Promise<void>;
+  createBooking: (
+    serviceId: string,
+    servicePrice: number,
+    scheduledDate?: string,
+    notes?: string
+  ) => Promise<void>;
   fetchMyBookings: () => Promise<void>;
   fetchHistory: (params?: any) => Promise<void>;
   cancelBooking: (id: string, reason?: string) => Promise<void>;
@@ -21,38 +26,58 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
   isLoading: false,
   error: null,
 
-  createBooking: async (serviceId) => {
+  createBooking: async (serviceId, servicePrice, scheduledDate?, notes?) => {
     set({ isLoading: true, error: null });
     try {
-      await bookingDao.create(serviceId);
+      // Verificar saldo do cliente antes de contratar
+      const balanceResponse = await userDao.getBalance();
+      const balance = balanceResponse.data?.data?.balance ?? 0;
+
+      if (balance < servicePrice) {
+        const message = `Saldo insuficiente. Você tem ${balance.toFixed(2)}€ e o serviço custa ${servicePrice.toFixed(2)}€`;
+        set({ error: message, isLoading: false });
+        throw new Error(message);
+      }
+
+      // Criar booking
+      await bookingDao.create({
+        serviceId,
+        scheduledDate,
+        notes,
+      });
+
       await get().fetchMyBookings();
       set({ isLoading: false });
     } catch (error: any) {
-      const message = error.response?.data?.message || "Erro ao contratar serviço";
+      const message = error.response?.data?.message || error.message || "Erro ao contratar serviço";
       set({ error: message, isLoading: false });
       throw error;
     }
   },
 
   fetchMyBookings: async () => {
+    set({ isLoading: true, error: null });
     try {
       const response = await bookingDao.getMy();
-
-      console.log("fetchMyBookings", response)
-      set({ bookings: response.data.bookings });
+      const bookings = response.data?.data?.bookings || [];
+      set({ bookings, isLoading: false });
     } catch (error: any) {
+      const message = error.response?.data?.message || "Erro ao carregar reservas";
+      set({ error: message, isLoading: false });
       console.error("Erro ao carregar reservas:", error);
     }
   },
 
   fetchHistory: async (params) => {
-    set({ isLoading: true });
+    set({ isLoading: true, error: null });
     try {
       const response = await bookingDao.getHistory(params);
-      set({ history: response.data.bookings, isLoading: false });
+      const bookings = response.data?.data?.bookings || [];
+      set({ history: bookings, isLoading: false });
     } catch (error: any) {
+      const message = error.response?.data?.message || "Erro ao carregar histórico";
+      set({ error: message, isLoading: false });
       console.error("Erro ao carregar histórico:", error);
-      set({ isLoading: false });
     }
   },
 
