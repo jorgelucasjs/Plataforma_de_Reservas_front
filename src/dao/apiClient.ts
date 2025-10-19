@@ -13,13 +13,22 @@ class ApiClient {
             baseURL: API_BASE_URL,
             headers: {
                 "Content-Type": "application/json",
+
             },
         });
 
         this.client.interceptors.request.use((config) => {
-            const token = localStorage.getItem("token");
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
+            // Busca o token do objeto do usuário salvo no localStorage
+            const userDataStr = localStorage.getItem("LOCAL_STORAGE_USER_DATA");
+            if (userDataStr) {
+                try {
+                    const userData = JSON.parse(userDataStr);
+                    if (userData?.token) {
+                        config.headers.Authorization = `Bearer ${userData.token}`;
+                    }
+                } catch (error) {
+                    console.error("Erro ao parsear dados do usuário:", error);
+                }
             }
             return config;
         });
@@ -28,8 +37,8 @@ class ApiClient {
             (response) => response,
             (error) => {
                 if (error.response?.status === 401) {
-                    localStorage.removeItem("token");
-                    //window.location.href = "/login";
+                    localStorage.removeItem("LOCAL_STORAGE_USER_DATA");
+                    window.location.href = "/login";
                 }
                 return Promise.reject(error);
             }

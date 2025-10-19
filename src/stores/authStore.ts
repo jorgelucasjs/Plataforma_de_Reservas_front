@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { authDao, userDao } from "../dao";
+import { authDao} from "../dao";
 import type { User } from "@/types";
 import { setData } from "@/dao/localStorage";
 import { LOCALSTORAGE_USERDATA } from "@/utils/LocalstorageKeys";
@@ -31,6 +31,8 @@ export const useAuthStore = create<AuthStore>((set) => ({
         try {
             const response = await authDao.register(data);
             const { token, user } = response.data.data;
+
+            console.log("register", response.data.data)
         
             setData(LOCALSTORAGE_USERDATA, {
                 ...user,
@@ -38,7 +40,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
             })
 
             set({ user, token, isAuthenticated: true, isLoading: false });
-            window.location.href = "/dashboard"
+           // window.location.href = "/dashboard"
         } catch (error: any) {
             const message = error.response?.data?.message || "Erro ao registar";
             set({ error: message, isLoading: false });
@@ -56,7 +58,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
                 token: token
             })
             set({ user, token, isAuthenticated: true, isLoading: false });
-            window.location.href = "/dashboard"
+            //window.location.href = "/dashboard"
         } catch (error: any) {
             const message = error.response?.data?.message || "Erro ao autenticar";
             set({ error: message, isLoading: false });

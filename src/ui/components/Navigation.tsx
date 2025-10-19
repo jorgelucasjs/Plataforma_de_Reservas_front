@@ -1,18 +1,22 @@
 import { Box, Button, Flex, Menu, Text } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
+import { APPCOLOR } from "@/utils/colors";
+import { LOCALSTORAGE_USERDATA } from "@/utils/LocalstorageKeys";
+import { getData } from "@/dao/localStorage";
 
 export const Navigation = () => {
     const navigate = useNavigate();
-    const { user, logout } = useAuthStore();
+    const { logout } = useAuthStore();
 
+    const user = getData(LOCALSTORAGE_USERDATA);
     const handleLogout = () => {
         logout();
         navigate("/login");
     };
 
     return (
-        <Box bg="blue.600" py="4" px="6" mb="8">
+        <Box bg={APPCOLOR} py="4" px="6" mb="8">
             <Flex justify="space-between" align="center" maxW="6xl" mx="auto">
                 <Box>
                     <Text fontSize="xl" fontWeight="bold" color="white">
@@ -65,6 +69,15 @@ export const Navigation = () => {
                         variant="ghost"
                         color="white"
                         _hover={{ bg: "blue.700" }}
+                        onClick={() => navigate("/dashboard")}
+                    >
+                        Dashboard
+                    </Button>
+
+                    <Button
+                        variant="ghost"
+                        color="white"
+                        _hover={{ bg: "blue.700" }}
                         onClick={() => navigate("/history")}
                     >
                         Histórico
@@ -72,7 +85,7 @@ export const Navigation = () => {
 
                     <Menu.Root>
                         <Menu.Trigger asChild>
-                            <Button colorScheme="blue" variant="outline" color="white">
+                            <Button bg="blue" variant="outline" color="white">
                                 {user?.fullName}
                             </Button>
                         </Menu.Trigger>

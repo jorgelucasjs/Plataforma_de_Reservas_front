@@ -12,6 +12,7 @@ interface ServiceStore {
   createService: (data: any) => Promise<void>;
   fetchServices: (params?: any) => Promise<void>;
   fetchMyServices: () => Promise<void>;
+  fetchServicesByProvider: (providerId: string) => Promise<void>;
   updateService: (id: string, data: any) => Promise<void>;
   deleteService: (id: string) => Promise<void>;
   setSelectedService: (service: Service | null) => void;
@@ -50,11 +51,27 @@ export const useServiceStore = create<ServiceStore>((set, get) => ({
   },
 
   fetchMyServices: async () => {
+    set({ isLoading: true, error: null });
     try {
       const response = await serviceDao.getMy();
-      set({ myServices: response.data.services });
+      set({ myServices: response.data.services, isLoading: false });
     } catch (error: any) {
+      const message = error.response?.data?.message || "Erro ao carregar meus serviços";
+      set({ error: message, isLoading: false });
       console.error("Erro ao carregar meus serviços:", error);
+    }
+  },
+
+  fetchServicesByProvider: async (providerId: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await serviceDao.getByProvider(providerId);
+      const services = response.data?.data?.services || [];
+      set({ myServices: services, isLoading: false });
+    } catch (error: any) {
+      const message = error.response?.data?.message || "Erro ao carregar serviços do provedor";
+      set({ error: message, isLoading: false });
+      console.error("Erro ao carregar serviços do provedor:", error);
     }
   },
 

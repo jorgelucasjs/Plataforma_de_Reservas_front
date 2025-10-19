@@ -29,7 +29,7 @@ export const BookingsPage = () => {
         }
     };
 
-    if (isLoading && bookings.length === 0) {
+    if (isLoading && (!bookings || bookings.length === 0)) {
         return (
             <Container maxW="6xl" textAlign="center" py="20">
                 <Spinner size="xl" />
@@ -41,7 +41,7 @@ export const BookingsPage = () => {
         <Container maxW="6xl">
             <Heading mb="6">Minhas Reservas</Heading>
 
-            {bookings.length === 0 ? (
+            {!bookings || bookings.length === 0 ? (
                 <Box textAlign="center" py="10">
                     <Text color="gray.500">Nenhuma reserva encontrada</Text>
                 </Box>

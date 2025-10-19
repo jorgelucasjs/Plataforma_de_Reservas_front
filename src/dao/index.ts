@@ -39,6 +39,9 @@ export const serviceDao = {
 
   getMy: () => apiClient.get<{ services: Service[]; total: number }>("/services/my"),
 
+  getByProvider: (providerId: string) => 
+    apiClient.get<{ data: { services: Service[]; total: number } }>(`/services/provider/${providerId}`),
+
   update: (id: string, data: { name?: string; price?: number; isActive?: boolean }) =>
     apiClient.post<Service>(`/services/${id}`, data),
 

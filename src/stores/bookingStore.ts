@@ -37,6 +37,8 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
   fetchMyBookings: async () => {
     try {
       const response = await bookingDao.getMy();
+
+      console.log("fetchMyBookings", response)
       set({ bookings: response.data.bookings });
     } catch (error: any) {
       console.error("Erro ao carregar reservas:", error);

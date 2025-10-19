@@ -16,15 +16,15 @@ import {
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "../../stores/authStore";
 import { useServiceStore } from "../../stores/serviceStore";
 import { useBookingStore } from "../../stores/bookingStore";
 import { toaster } from "../components/ui/toaster";
+import { CURRENT_USER_INFO } from "@/utils/LocalstorageKeys";
 
 export const ServicesPage = () => {
     const navigate = useNavigate();
-    const { user } = useAuthStore();
-    const { services, myServices, fetchServices, fetchMyServices, deleteService, isLoading } = useServiceStore();
+    const user  = CURRENT_USER_INFO
+    const { services, myServices, fetchServices, fetchServicesByProvider, deleteService, isLoading } = useServiceStore();
     const { createBooking } = useBookingStore();
     const [searchTerm, setSearchTerm] = useState("");
     const [minPrice, setMinPrice] = useState("");
@@ -36,18 +36,19 @@ export const ServicesPage = () => {
     const onClose = () => setIsOpen(false);
 
     useEffect(() => {
-        if (user?.userType === "provider") {
-            fetchMyServices();
+        if (user?.userType === "provider" && user?.id) {
+            fetchServicesByProvider(user.id);
         } else {
             fetchServices();
         }
-    }, []);
+    }, [user?.userType, user?.id]);
 
     const handleSearch = async () => {
-        const params: any = {};
-        if (searchTerm) params.search = searchTerm;
-        if (minPrice) params.minPrice = parseFloat(minPrice);
-        if (maxPrice) params.maxPrice = parseFloat(maxPrice);
+        const params: Record<string, string | number> = {};
+        if (searchTerm.trim()) params.search = searchTerm.trim();
+        if (minPrice && !isNaN(parseFloat(minPrice))) params.minPrice = parseFloat(minPrice);
+        if (maxPrice && !isNaN(parseFloat(maxPrice))) params.maxPrice = parseFloat(maxPrice);
+
         await fetchServices(params);
     };
 
@@ -59,15 +60,15 @@ export const ServicesPage = () => {
                 description: "Serviço contratado com sucesso!",
                 type: 'success',
                 duration: 3000
-            })
+            });
         } catch (error: any) {
-
+            const errorMessage = error.response?.data?.message || error.message || "Erro ao contratar serviço";
             toaster.create({
                 title: "Erro",
-                description: error.response?.data?.message || "Erro ao contratar serviço",
+                description: errorMessage,
                 type: 'error',
                 duration: 3000
-            })
+            });
         }
     };
 
@@ -77,24 +78,26 @@ export const ServicesPage = () => {
             await deleteService(selectedServiceId);
             toaster.create({
                 title: "Serviço",
-                description: "Serviço eliminado!",
+                description: "Serviço eliminado com sucesso!",
                 type: 'success',
                 duration: 3000
-            })
+            });
             onClose();
+            setSelectedServiceId(null);
         } catch (error: any) {
+            const errorMessage = error.response?.data?.message || error.message || "Erro ao eliminar serviço";
             toaster.create({
-                title: "Erro ao eliminar serviço",
-                description: "Erro ao eliminar serviço",
+                title: "Erro",
+                description: errorMessage,
                 type: 'error',
                 duration: 3000
-            })
+            });
         }
     };
 
     const displayServices = user?.userType === "provider" ? myServices : services;
 
-    if (isLoading && displayServices.length === 0) {
+    if (isLoading && (!displayServices || displayServices.length === 0)) {
         return (
             <Container maxW="6xl" textAlign="center" py="20">
                 <Spinner size="xl" />
@@ -133,7 +136,7 @@ export const ServicesPage = () => {
                 </Stack>
             )}
 
-            {displayServices.length === 0 ? (
+            {!displayServices || displayServices.length === 0 ? (
                 <Box textAlign="center" py="10">
                     <Text color="gray.500">Nenhum serviço encontrado</Text>
                 </Box>

@@ -52,7 +52,7 @@ export const HistoryPage = () => {
                 <Box textAlign="center" py="10">
                     <Spinner />
                 </Box>
-            ) : history.length === 0 ? (
+            ) : !history || history.length === 0 ? (
                 <Box textAlign="center" py="10">
                     <Text color="gray.500">Nenhuma transação encontrada</Text>
                 </Box>
