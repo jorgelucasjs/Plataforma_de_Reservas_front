@@ -1,26 +1,16 @@
-import {
-    Box,
-    Button,
-    Container,
-    Grid,
-    Heading,
-    Input,
-    Stack,
-    Text,
-    VStack,
-    HStack,
-    Badge,
-    Card,
-    Spinner,
-    Dialog,
-} from "@chakra-ui/react";
+import { Container, Grid, Heading } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useServiceStore } from "../../stores/serviceStore";
 import { useBookingStore } from "../../stores/bookingStore";
 import { toaster } from "../components/ui/toaster";
 import { CURRENT_USER_INFO } from "@/utils/LocalstorageKeys";
-import { APPCOLOR } from "@/utils/colors";
+import { SearchFilters } from "../components/SearchFilters";
+import { LoadingSpinner } from "../components/LoadingSpinner";
+import { EmptyState } from "../components/EmptyState";
+import { ServiceCard } from "../components/ServiceCard";
+import { BookingConfirmDialog } from "../components/BookingConfirmDialog";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 
 export const ServicesPage = () => {
     const navigate = useNavigate();
@@ -112,11 +102,7 @@ export const ServicesPage = () => {
     const displayServices = user?.userType === "provider" ? myServices : services;
 
     if (isLoading && (!displayServices || displayServices.length === 0)) {
-        return (
-            <Container maxW="6xl" textAlign="center" py="20">
-                <Spinner size="xl" />
-            </Container>
-        );
+        return <LoadingSpinner />;
     }
 
     return (
@@ -126,176 +112,63 @@ export const ServicesPage = () => {
             </Heading>
 
             {user?.userType === "client" && (
-                <Stack mb="6" direction={{ base: "column", md: "row" }} gap="4">
-                    <Input
-                        placeholder="Buscar serviço..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                    <Input
-                        placeholder="Preço mín."
-                        type="number"
-                        value={minPrice}
-                        onChange={(e) => setMinPrice(e.target.value)}
-                    />
-                    <Input
-                        placeholder="Preço máx."
-                        type="number"
-                        value={maxPrice}
-                        onChange={(e) => setMaxPrice(e.target.value)}
-                    />
-                    <Button colorScheme="blue" onClick={handleSearch} loading={isLoading}>
-                        Buscar
-                    </Button>
-                </Stack>
+                <SearchFilters
+                    searchTerm={searchTerm}
+                    minPrice={minPrice}
+                    maxPrice={maxPrice}
+                    onSearchChange={setSearchTerm}
+                    onMinPriceChange={setMinPrice}
+                    onMaxPriceChange={setMaxPrice}
+                    onSearch={handleSearch}
+                    isLoading={isLoading}
+                />
             )}
 
             {!displayServices || displayServices.length === 0 ? (
-                <Box textAlign="center" py="10">
-                    <Text color="gray.500">Nenhum serviço encontrado</Text>
-                </Box>
+                <EmptyState message="Nenhum serviço encontrado" />
             ) : (
                 <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }} gap="6">
                     {displayServices.map((service) => (
-                        <Card.Root
+                        <ServiceCard
                             key={service.id}
-                            bg="white"
-                            border="1px solid"
-                            borderColor="gray.200"
-                            shadow="md"
-                            _hover={{ boxShadow: "lg", transform: "translateY(-2px)", transition: "all 0.3s ease" }}
-                        >
-                            <Card.Body>
-                                <VStack align="start" p="3">
-                                    <Heading size="md">{service.name}</Heading>
-                                    <Text fontSize="sm" color="gray.600" lineClamp={3}>
-                                        {service.description}
-                                    </Text>
-                                    <HStack justify="space-between" width="full">
-                                        <Badge colorScheme="green" fontSize="md">
-                                            ${service.price.toFixed(2)}
-                                        </Badge>
-                                        <Text fontSize="xs" color="gray.500">
-                                            {service.providerName}
-                                        </Text>
-                                    </HStack>
-
-                                    <HStack p="2" width="full">
-                                        {user?.userType === "provider" && (
-                                            <>
-                                                <Button
-                                                    size="sm"
-                                                    colorScheme="blue"
-                                                    flex="1"
-                                                    onClick={() => navigate(`/services/${service.id}/edit`)}
-                                                >
-                                                    Editar
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    colorScheme="red"
-                                                    flex="1"
-                                                    onClick={() => {
-                                                        setSelectedServiceId(service.id);
-                                                        onDeleteOpen();
-                                                    }}
-                                                >
-                                                    Eliminar
-                                                </Button>
-                                            </>
-                                        )}
-                                        {user?.userType === "client" && (
-                                            <Button
-                                                colorScheme="green"
-                                                size="sm"
-                                                width="full"
-                                                onClick={() => {
-                                                    setSelectedServiceId(service.id);
-                                                    setSelectedServicePrice(service.price);
-                                                    onBookingOpen();
-                                                }}
-                                            >
-                                                Contratar
-                                            </Button>
-                                        )}
-                                    </HStack>
-                                </VStack>
-                            </Card.Body>
-                        </Card.Root>
+                            id={service.id}
+                            name={service.name}
+                            description={service.description}
+                            price={service.price}
+                            providerName={service.providerName}
+                            userType={user?.userType || "client"}
+                            onEdit={() => navigate(`/services/${service.id}/edit`)}
+                            onDelete={() => {
+                                setSelectedServiceId(service.id);
+                                onDeleteOpen();
+                            }}
+                            onBook={() => {
+                                setSelectedServiceId(service.id);
+                                setSelectedServicePrice(service.price);
+                                onBookingOpen();
+                            }}
+                        />
                     ))}
                 </Grid>
             )}
 
-            {/* Modal de Confirmação de Eliminação */}
-            <Dialog.Root open={isDeleteOpen} onOpenChange={(e) => setIsDeleteOpen(e.open)}>
-                <Dialog.Backdrop />
-                <Dialog.Positioner>
-                    <Dialog.Content>
-                        <Dialog.Header>
-                            <Dialog.Title fontSize="lg" fontWeight="bold">
-                                Eliminar Serviço
-                            </Dialog.Title>
-                        </Dialog.Header>
-                        <Dialog.Body>
-                            Tem a certeza que deseja eliminar este serviço? Esta ação não pode ser desfeita.
-                        </Dialog.Body>
-                        <Dialog.Footer>
-                            <Button onClick={onDeleteClose}>
-                                Cancelar
-                            </Button>
-                            <Button colorScheme="red" onClick={handleDeleteService} ml={3}>
-                                Eliminar
-                            </Button>
-                        </Dialog.Footer>
-                    </Dialog.Content>
-                </Dialog.Positioner>
-            </Dialog.Root>
+            <ConfirmDialog
+                isOpen={isDeleteOpen}
+                onClose={onDeleteClose}
+                onConfirm={handleDeleteService}
+                title="Eliminar Serviço"
+                message="Tem a certeza que deseja eliminar este serviço? Esta ação não pode ser desfeita."
+                confirmText="Eliminar"
+                cancelText="Cancelar"
+            />
 
-            {/* Modal de Confirmação de Contratação */}
-            <Dialog.Root open={isBookingOpen} onOpenChange={(e) => {
-                if(!isBookingOpen){
-                    setIsBookingOpen(e.open)
-                }
-            }}>
-                <Dialog.Backdrop />
-                <Dialog.Positioner>
-                    <Dialog.Content bg={"#fff"}>
-                        <Dialog.Header>
-                            <Dialog.Title fontSize="lg" fontWeight="bold">
-                                Confirmar Contratação
-                            </Dialog.Title>
-                        </Dialog.Header>
-                        <Dialog.Body>
-                            <VStack align="start" gap="3">
-                                <Text>Deseja prosseguir com a contratação deste serviço?</Text>
-                                <Box p="3" bg="gray.50" borderRadius="md" width="full">
-                                    <Text fontWeight="semibold" mb="1">Valor do serviço:</Text>
-                                    <Text fontSize="2xl" fontWeight="bold" color="green.600">
-                                        ${selectedServicePrice.toFixed(2)}
-                                    </Text>
-                                </Box>
-                                <Text fontSize="sm" color="gray.600">
-                                    O valor será debitado do seu saldo disponível.
-                                </Text>
-                            </VStack>
-                        </Dialog.Body>
-                        <Dialog.Footer>
-                            <Button onClick={onBookingClose} disabled={isBookingLoading}>
-                                Cancelar
-                            </Button>
-                            <Button
-                                bg={APPCOLOR}
-                                onClick={handleBookService}
-                                ml={3}
-                                color={"#fff"}
-                                loading={isBookingLoading}
-                            >
-                                Confirmar Contratação
-                            </Button>
-                        </Dialog.Footer>
-                    </Dialog.Content>
-                </Dialog.Positioner>
-            </Dialog.Root>
+            <BookingConfirmDialog
+                isOpen={isBookingOpen}
+                onClose={onBookingClose}
+                onConfirm={handleBookService}
+                price={selectedServicePrice}
+                isLoading={isBookingLoading}
+            />
         </Container>
     );
 };

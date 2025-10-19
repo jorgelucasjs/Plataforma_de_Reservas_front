@@ -1,15 +1,4 @@
-import {
-    Box,
-    Container,
-    Grid,
-    Heading,
-    Stat,
-    Card,
-    Button,
-    Text,
-    VStack,
-    HStack,
-} from "@chakra-ui/react";
+import { Box, Container, Grid, Heading, Text } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import { useServiceStore } from "../../stores/serviceStore";
 import { useBookingStore } from "../../stores/bookingStore";
@@ -18,6 +7,8 @@ import { useEffect, useState } from "react";
 import { LOCALSTORAGE_USERDATA } from "@/utils/LocalstorageKeys";
 import { getData } from "@/dao/localStorage";
 import { AddBalanceModal } from "../components/AddBalanceModal";
+import { StatCard } from "../components/StatCard";
+import { RecentItemsList } from "../components/RecentItemsList";
 import type { User } from "@/types";
 
 export const DashboardPage = () => {
@@ -78,165 +69,68 @@ export const DashboardPage = () => {
                 gap="6"
                 mb="8"
             >
-                <Card.Root
-                    bg="white"
-                    border="1px solid"
-                    borderColor="gray.200"
-                    shadow="md"
-                    _hover={{ boxShadow: "lg", transform: "translateY(-2px)", transition: "all 0.3s ease" }}
-                >
-                    <Card.Body p="6">
-                        <VStack align="stretch" gap="3">
-                            <Stat.Root>
-                                <Stat.Label color="gray.600" fontSize="md" fontWeight="medium">Saldo</Stat.Label>
-                                <Stat.ValueText fontSize="3xl" fontWeight="bold" color="green.600">
-                                    ${user?.balance?.toFixed(2) ?? "0.00"}
-                                </Stat.ValueText>
-                            </Stat.Root>
-
-                            {
-                                user?.userType === "client" ?
-                                    <Button
-                                        colorScheme="green"
-                                        size="sm"
-                                        onClick={() => setIsBalanceModalOpen(true)}
-                                    >
-                                        Carregar Conta
-                                    </Button>
-                                    :
-                                    null
-                            }
-                        </VStack>
-                    </Card.Body>
-                </Card.Root>
+                <StatCard
+                    label="Saldo"
+                    value={`$${user?.balance?.toFixed(2) ?? "0.00"}`}
+                    valueColor="green.600"
+                    action={
+                        user?.userType === "client"
+                            ? {
+                                  label: "Carregar Conta",
+                                  onClick: () => setIsBalanceModalOpen(true),
+                                  colorScheme: "green",
+                              }
+                            : undefined
+                    }
+                />
 
                 {user?.userType === "provider" && (
-                    <Card.Root
-                        bg="white"
-                        border="1px solid"
-                        borderColor="gray.200"
-                        shadow="md"
-                        _hover={{ boxShadow: "lg", transform: "translateY(-2px)", transition: "all 0.3s ease" }}
-                    >
-                        <Card.Body p="6">
-                            <Stat.Root>
-                                <Stat.Label color="gray.600" fontSize="md" fontWeight="medium">Meus Serviços</Stat.Label>
-                                <Stat.ValueText fontSize="3xl" fontWeight="bold" color="blue.600">{myServices?.length ?? 0}</Stat.ValueText>
-                            </Stat.Root>
-                        </Card.Body>
-                    </Card.Root>
+                    <StatCard
+                        label="Meus Serviços"
+                        value={myServices?.length ?? 0}
+                        valueColor="blue.600"
+                    />
                 )}
 
                 {user?.userType === "client" && (
-                    <Card.Root
-                        bg="white"
-                        border="1px solid"
-                        borderColor="gray.200"
-                        shadow="md"
-                        _hover={{ boxShadow: "lg", transform: "translateY(-2px)", transition: "all 0.3s ease" }}
-                    >
-                        <Card.Body p="6">
-                            <Stat.Root>
-                                <Stat.Label color="gray.600" fontSize="md" fontWeight="medium">Minhas Reservas</Stat.Label>
-                                <Stat.ValueText fontSize="3xl" fontWeight="bold" color="purple.600">{bookings?.length ?? 0}</Stat.ValueText>
-                            </Stat.Root>
-                        </Card.Body>
-                    </Card.Root>
+                    <StatCard
+                        label="Minhas Reservas"
+                        value={bookings?.length ?? 0}
+                        valueColor="purple.600"
+                    />
                 )}
 
-                <Card.Root
-                    bg="white"
-                    border="1px solid"
-                    borderColor="gray.200"
-                    shadow="md"
-                    _hover={{ boxShadow: "lg", transform: "translateY(-2px)", transition: "all 0.3s ease" }}
-                >
-                    <Card.Body p="6">
-                        <Stat.Root>
-                            <Stat.Label color="gray.600" fontSize="md" fontWeight="medium">Tipo de Conta</Stat.Label>
-                            <Stat.ValueText fontSize="xl" fontWeight="bold" color="gray.800">
-                                {user?.userType === "provider" ? "Prestador" : "Cliente"}
-                            </Stat.ValueText>
-                        </Stat.Root>
-                    </Card.Body>
-                </Card.Root>
+                <StatCard
+                    label="Tipo de Conta"
+                    value={user?.userType === "provider" ? "Prestador" : "Cliente"}
+                    valueColor="gray.800"
+                />
             </Grid>
 
             {user?.userType === "provider" && myServices && myServices.length > 0 && (
-                <Card.Root shadow="md" bg="white" borderWidth="0">
-                    <Card.Body p="6">
-                        <Heading size="lg" mb="6" color="gray.700">
-                            Últimos Serviços
-                        </Heading>
-                        <VStack align="stretch" gap="4">
-                            {myServices.slice(0, 3).map((service) => (
-                                <Box
-                                    key={service.id}
-                                    p="5"
-                                    bg="gray.50"
-                                    borderRadius="lg"
-                                    border="1px solid"
-                                    borderColor="gray.200"
-                                    _hover={{ bg: "gray.100", shadow: "sm" }}
-                                    transition="all 0.2s"
-                                >
-                                    <HStack justify="space-between">
-                                        <VStack align="start" gap="1">
-                                            <Text fontWeight="bold" fontSize="lg" color="gray.800">{service.name}</Text>
-                                            <Text fontSize="md" color="green.600" fontWeight="semibold">
-                                                ${service.price.toFixed(2)}
-                                            </Text>
-                                        </VStack>
-                                        <Button
-                                            colorScheme="blue"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => navigate(`/services/${service.id}/edit`)}
-                                        >
-                                            Editar
-                                        </Button>
-                                    </HStack>
-                                </Box>
-                            ))}
-                        </VStack>
-                    </Card.Body>
-                </Card.Root>
+                <RecentItemsList
+                    title="Últimos Serviços"
+                    items={myServices.slice(0, 3).map((service) => ({
+                        id: service.id,
+                        title: service.name,
+                        subtitle: `$${service.price.toFixed(2)}`,
+                        action: {
+                            label: "Editar",
+                            onClick: () => navigate(`/services/${service.id}/edit`),
+                        },
+                    }))}
+                />
             )}
 
             {user?.userType === "client" && bookings && bookings.length > 0 && (
-                <Card.Root shadow="md" bg="white" borderWidth="0">
-                    <Card.Body p="6">
-                        <Heading size="lg" mb="6" color="gray.700">
-                            Últimas Reservas
-                        </Heading>
-                        <VStack align="stretch" gap="4">
-                            {bookings.slice(0, 3).map((booking) => (
-                                <Box
-                                    key={booking.id}
-                                    p="5"
-                                    bg="gray.50"
-                                    borderRadius="lg"
-                                    border="1px solid"
-                                    borderColor="gray.200"
-                                    _hover={{ bg: "gray.100", shadow: "sm" }}
-                                    transition="all 0.2s"
-                                >
-                                    <HStack justify="space-between">
-                                        <VStack align="start" gap="1">
-                                            <Text fontWeight="bold" fontSize="lg" color="gray.800">{booking.serviceName}</Text>
-                                            <Text fontSize="sm" color="gray.600">
-                                                {booking.providerName}
-                                            </Text>
-                                        </VStack>
-                                        <Text fontWeight="bold" fontSize="xl" color="green.600">
-                                            ${booking.amount.toFixed(2)}
-                                        </Text>
-                                    </HStack>
-                                </Box>
-                            ))}
-                        </VStack>
-                    </Card.Body>
-                </Card.Root>
+                <RecentItemsList
+                    title="Últimas Reservas"
+                    items={bookings.slice(0, 3).map((booking) => ({
+                        id: booking.id,
+                        title: booking.serviceName,
+                        subtitle: `$${booking.amount.toFixed(2)}`,
+                    }))}
+                />
             )}
 
             <AddBalanceModal
