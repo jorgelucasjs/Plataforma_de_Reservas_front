@@ -74,7 +74,7 @@ export const EditServicePage = () => {
 
     return (
         <Container maxW="md">
-            <Heading mb="6">Editar Serviço</Heading>
+            <Heading mb="6" color="navy.700">Editar Serviço</Heading>
             <Stack gap="4">
                 <Field.Root invalid={!!errors.name}>
                     <Field.Label>Nome do Serviço</Field.Label>
@@ -107,10 +107,10 @@ export const EditServicePage = () => {
                 </Field.Root>
 
                 <HStack gap="4">
-                    <Button colorScheme="blue" onClick={handleSubmit} loading={isLoading} flex="1">
+                    <Button bg="primary.500" color="white" _hover={{ bg: "accent.500" }} onClick={handleSubmit} loading={isLoading} flex="1">
                         Atualizar Serviço
                     </Button>
-                    <Button onClick={() => navigate("/services")} flex="1">
+                    <Button variant="outline" borderColor="navy.500" color="navy.500" _hover={{ bg: "navy.50" }} onClick={() => navigate("/services")} flex="1">
                         Cancelar
                     </Button>
                 </HStack>

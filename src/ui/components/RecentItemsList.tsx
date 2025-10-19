@@ -17,7 +17,7 @@ interface RecentItemsListProps {
 
 export const RecentItemsList = ({ title, items }: RecentItemsListProps) => {
     return (
-        <Card.Root shadow="md" bg="white" borderWidth="0">
+        <Card.Root  bg="white" borderWidth="0">
             <Card.Body p="6">
                 <Heading size="lg" mb="6" color="gray.700">
                     {title}

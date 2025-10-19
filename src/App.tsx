@@ -19,84 +19,84 @@ export function App() {
 	return (
 		<ChakraProvider value={system}>
 			<ColorModeProvider defaultTheme="light" forcedTheme="light">
-			<BrowserRouter>
-				<Routes>
-					<Route path="/login" element={<LoginPage />} />
+				<BrowserRouter>
+					<Routes>
+						<Route path="/login" element={<LoginPage />} />
 
-					<Route
-						path="/dashboard"
-						element={
-							<ProtectedRoute>
-								<Navigation />
-								<DashboardPage />
-							</ProtectedRoute>
-						}
-					/>
+						<Route
+							path="/dashboard"
+							element={
+								<ProtectedRoute>
+									<Navigation />
+									<DashboardPage />
+								</ProtectedRoute>
+							}
+						/>
 
-					<Route
-						path="/services"
-						element={
-							<ProtectedRoute>
-								<Navigation />
-								<ServicesPage />
-							</ProtectedRoute>
-						}
-					/>
+						<Route
+							path="/services"
+							element={
+								<ProtectedRoute>
+									<Navigation />
+									<ServicesPage />
+								</ProtectedRoute>
+							}
+						/>
 
-					<Route
-						path="/services/new"
-						element={
-							<ProtectedRoute>
-								<Navigation />
-								<CreateServicePage />
-							</ProtectedRoute>
-						}
-					/>
+						<Route
+							path="/services/new"
+							element={
+								<ProtectedRoute>
+									<Navigation />
+									<CreateServicePage />
+								</ProtectedRoute>
+							}
+						/>
 
-					<Route
-						path="/services/:id/edit"
-						element={
-							<ProtectedRoute>
-								<Navigation />
-								<EditServicePage />
-							</ProtectedRoute>
-						}
-					/>
+						<Route
+							path="/services/:id/edit"
+							element={
+								<ProtectedRoute>
+									<Navigation />
+									<EditServicePage />
+								</ProtectedRoute>
+							}
+						/>
 
-					<Route
-						path="/bookings"
-						element={
-							<ProtectedRoute>
-								<Navigation />
-								<BookingsPage />
-							</ProtectedRoute>
-						}
-					/>
+						<Route
+							path="/bookings"
+							element={
+								<ProtectedRoute>
+									<Navigation />
+									<BookingsPage />
+								</ProtectedRoute>
+							}
+						/>
 
-					<Route
-						path="/history"
-						element={
-							<ProtectedRoute>
-								<Navigation />
-								<HistoryPage />
-							</ProtectedRoute>
-						}
-					/>
+						<Route
+							path="/history"
+							element={
+								<ProtectedRoute>
+									<Navigation />
+									<HistoryPage />
+								</ProtectedRoute>
+							}
+						/>
 
-					<Route
-						path="/profile"
-						element={
-							<ProtectedRoute>
-								<Navigation />
-								<ProfilePage />
-							</ProtectedRoute>
-						}
-					/>
+						<Route
+							path="/profile"
+							element={
+								<ProtectedRoute>
+									<Navigation />
+									<ProfilePage />
+								</ProtectedRoute>
+							}
+						/>
 
-					{/* <Route path="/" element={<Navigate to="/dashboard" />} /> */}
-				</Routes>
-				<Toaster />
-			</BrowserRouter>
+						{/* <Route path="/" element={<Navigate to="/dashboard" />} /> */}
+					</Routes>
+					<Toaster />
+				</BrowserRouter>
 			</ColorModeProvider>
 		</ChakraProvider>
 	);

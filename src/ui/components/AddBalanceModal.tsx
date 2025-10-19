@@ -80,11 +80,13 @@ export const AddBalanceModal = ({ isOpen, onClose, userEmail }: AddBalanceModalP
           </VStack>
         </DialogBody>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={isLoading}>
+          <Button variant="outline" borderColor="navy.500" color="navy.500" onClick={onClose} disabled={isLoading}>
             Cancelar
           </Button>
           <Button
-            colorScheme="green"
+            bg="primary.500"
+            color="white"
+            _hover={{ bg: "accent.500" }}
             onClick={handleSubmit}
             loading={isLoading}
           >

@@ -41,10 +41,11 @@ export const ConfirmDialog = ({
                             {cancelText}
                         </Button>
                         <Button
-                            colorScheme={confirmColorScheme}
+                            bg={confirmColorScheme}
                             onClick={onConfirm}
                             ml={3}
                             loading={isLoading}
+                            color={"#fff"}
                         >
                             {confirmText}
                         </Button>

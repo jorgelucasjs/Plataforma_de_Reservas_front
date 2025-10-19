@@ -1,5 +1,5 @@
 import { useBookingStore } from "../../stores/bookingStore";
-import { Container, Heading, Stack } from "@chakra-ui/react";
+import { Container, Grid, Heading } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { toaster } from "../components/ui/toaster";
 import { LoadingSpinner } from "../components/LoadingSpinner";
@@ -39,12 +39,12 @@ export const BookingsPage = () => {
 
     return (
         <Container maxW="6xl">
-            <Heading mb="6">Minhas Reservas</Heading>
+            <Heading mb="6" color="navy.700">Minhas Reservas</Heading>
 
             {!bookings || bookings.length === 0 ? (
                 <EmptyState message="Nenhuma reserva encontrada" />
             ) : (
-                <Stack gap="4">
+                <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }} gap="6">
                     {bookings.map((booking) => (
                         <BookingCard
                             key={booking.id}
@@ -60,7 +60,7 @@ export const BookingsPage = () => {
                             }}
                         />
                     ))}
-                </Stack>
+                </Grid>
             )}
 
             <ConfirmDialog

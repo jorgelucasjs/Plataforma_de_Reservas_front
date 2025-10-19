@@ -1,4 +1,4 @@
-import { Container, Heading, Stack, HStack, Input, Badge, Box, Card, Spinner, VStack, Text } from "@chakra-ui/react";
+import { Container, Heading, Stack, HStack, Input, Badge, Box, Card, Spinner, VStack, Text, Grid } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useBookingStore } from "../../stores/bookingStore";
 
@@ -20,7 +20,7 @@ export const HistoryPage = () => {
 
     return (
         <Container maxW="6xl">
-            <Heading mb="6">Histórico de Transações</Heading>
+            <Heading mb="6" color="navy.700">Histórico de Transações</Heading>
 
             <Stack mb="6" direction={{ base: "column", md: "row" }} gap="4">
                 <Input
@@ -41,6 +41,7 @@ export const HistoryPage = () => {
                         borderRadius: "4px",
                         border: "1px solid #cbd5e0",
                     }}
+                    
                 >
                     <option value="all">Todos os Status</option>
                     <option value="confirmed">Confirmado</option>
@@ -57,34 +58,43 @@ export const HistoryPage = () => {
                     <Text color="gray.500">Nenhuma transação encontrada</Text>
                 </Box>
             ) : (
-                <Stack gap="4">
+                <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }} gap="6">
                     {history.map((booking) => (
-                        <Card.Root key={booking.id}>
+                        <Card.Root
+                            key={booking.id}
+                            bg="bg.card"
+                            border="1px solid"
+                            borderColor="border.default"
+                            shadow="md"
+                            _hover={{ boxShadow: "xl", transform: "translateY(-2px)", transition: "all 0.3s ease", borderColor: "primary.500" }}
+                        >
                             <Card.Body>
-                                <HStack justify="space-between">
-                                    <VStack align="start" gap="1">
-                                        <Text fontWeight="bold">{booking.serviceName}</Text>
-                                        <Text fontSize="sm" color="gray.600">
-                                            Cliente: {booking.clientName}
-                                        </Text>
-                                        <Text fontSize="sm" color="gray.600">
-                                            Prestador: {booking.providerName}
-                                        </Text>
-                                    </VStack>
-                                    <VStack align="end" gap="1">
-                                        <Badge colorScheme={booking.status === "confirmed" ? "green" : "red"}>
+                                <VStack align="start" gap="3">
+                                    <HStack justify="space-between" width="full">
+                                        <Text fontWeight="bold" color="navy.700" fontSize="lg">{booking.serviceName}</Text>
+                                        <Badge bg={booking.status === "confirmed" ? "primary.500" : "red.500"} color="white" px="3" py="1" borderRadius="md">
                                             {booking.status === "confirmed" ? "Confirmado" : "Cancelado"}
                                         </Badge>
-                                        <Text fontWeight="bold">${booking.amount.toFixed(2)}</Text>
-                                        <Text fontSize="xs" color="gray.500">
+                                    </HStack>
+                                    <VStack align="start" gap="1" width="full">
+                                        <Text fontSize="sm" color="text.secondary">
+                                            Cliente: {booking.clientName}
+                                        </Text>
+                                        <Text fontSize="sm" color="text.secondary">
+                                            Prestador: {booking.providerName}
+                                        </Text>
+                                        <Text fontSize="md" fontWeight="bold" color="primary.600">
+                                            ${booking.amount.toFixed(2)}
+                                        </Text>
+                                        <Text fontSize="xs" color="text.muted">
                                             {new Date(booking.createdAt).toLocaleDateString()}
                                         </Text>
                                     </VStack>
-                                </HStack>
+                                </VStack>
                             </Card.Body>
                         </Card.Root>
                     ))}
-                </Stack>
+                </Grid>
             )}
         </Container>
     );

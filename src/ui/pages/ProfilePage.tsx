@@ -11,30 +11,30 @@ export const ProfilePage = () => {
 
   return (
     <Container maxW="md">
-      <Heading mb="6">Meu Perfil</Heading>
+      <Heading mb="6" color="navy.700">Meu Perfil</Heading>
       <Card.Root>
         <Card.Body>
           <Stack gap="4">
             <Box>
-              <Text fontSize="sm" color="gray.600">
+              <Text fontSize="sm" color="text.secondary">
                 Nome
               </Text>
               <Text fontWeight="bold">{user?.fullName}</Text>
             </Box>
             <Box>
-              <Text fontSize="sm" color="gray.600">
+              <Text fontSize="sm" color="text.secondary">
                 Email
               </Text>
               <Text fontWeight="bold">{user?.email}</Text>
             </Box>
             <Box>
-              <Text fontSize="sm" color="gray.600">
+              <Text fontSize="sm" color="text.secondary">
                 NIF
               </Text>
               <Text fontWeight="bold">{user?.nif}</Text>
             </Box>
             <Box>
-              <Text fontSize="sm" color="gray.600">
+              <Text fontSize="sm" color="text.secondary">
                 Tipo de Conta
               </Text>
               <Text fontWeight="bold">
@@ -42,10 +42,10 @@ export const ProfilePage = () => {
               </Text>
             </Box>
             <Box>
-              <Text fontSize="sm" color="gray.600">
+              <Text fontSize="sm" color="text.secondary">
                 Saldo
               </Text>
-              <Text fontWeight="bold" fontSize="lg" color="green.600">
+              <Text fontWeight="bold" fontSize="lg" color="primary.600">
                 ${user?.balance.toFixed(2)}
               </Text>
             </Box>

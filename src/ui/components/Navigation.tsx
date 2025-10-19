@@ -1,22 +1,26 @@
 import { Box, Button, Flex, Menu, Text } from "@chakra-ui/react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
-import { APPCOLOR } from "@/utils/colors";
+import { COLORS } from "@/utils/colors";
 import { LOCALSTORAGE_USERDATA } from "@/utils/LocalstorageKeys";
 import { getData } from "@/dao/localStorage";
 
 export const Navigation = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { logout } = useAuthStore();
 
     const user = getData(LOCALSTORAGE_USERDATA);
+
+    const isActive = (path: string) => location.pathname === path;
+
     const handleLogout = () => {
         logout();
-        navigate("/login");
+        window.location.href = "/login"
     };
 
     return (
-        <Box bg={APPCOLOR} py="4" px="6" mb="8">
+        <Box bg={COLORS.navy} py="4" px="6" mb="8" >
             <Flex justify="space-between" align="center" maxW="6xl" mx="auto">
                 <Box>
                     <Text fontSize="xl" fontWeight="bold" color="white">
@@ -25,18 +29,31 @@ export const Navigation = () => {
                 </Box>
 
                 <Flex gap="4" align="center">
+
+                    <Button
+                        variant="ghost"
+                        color="white"
+                        bg={isActive("/dashboard") ? COLORS.primary : "transparent"}
+                        _hover={{ bg: COLORS.primary }}
+                        onClick={() => navigate("/dashboard")}
+                    >
+                        Dashboard
+                    </Button>
                     {user?.userType === "provider" && (
                         <>
                             <Button
                                 variant="ghost"
                                 color="white"
-                                _hover={{ bg: "blue.700" }}
+                                bg={isActive("/services") ? COLORS.primary : "transparent"}
+                                _hover={{ bg: COLORS.primary }}
                                 onClick={() => navigate("/services")}
                             >
                                 Meus Serviços
                             </Button>
                             <Button
-                                colorScheme="whiteAlpha"
+                                bg={isActive("/services/new") ? COLORS.accent : COLORS.primary}
+                                color="white"
+                                _hover={{ bg: COLORS.accent }}
                                 onClick={() => navigate("/services/new")}
                             >
                                 Novo Serviço
@@ -49,7 +66,8 @@ export const Navigation = () => {
                             <Button
                                 variant="ghost"
                                 color="white"
-                                _hover={{ bg: "blue.700" }}
+                                bg={isActive("/services") ? COLORS.primary : "transparent"}
+                                _hover={{ bg: COLORS.primary }}
                                 onClick={() => navigate("/services")}
                             >
                                 Contratar Serviços
@@ -57,7 +75,8 @@ export const Navigation = () => {
                             <Button
                                 variant="ghost"
                                 color="white"
-                                _hover={{ bg: "blue.700" }}
+                                bg={isActive("/bookings") ? COLORS.primary : "transparent"}
+                                _hover={{ bg: COLORS.primary }}
                                 onClick={() => navigate("/bookings")}
                             >
                                 Minhas Reservas
@@ -65,19 +84,13 @@ export const Navigation = () => {
                         </>
                     )}
 
-                    <Button
-                        variant="ghost"
-                        color="white"
-                        _hover={{ bg: "blue.700" }}
-                        onClick={() => navigate("/dashboard")}
-                    >
-                        Dashboard
-                    </Button>
+
 
                     <Button
                         variant="ghost"
                         color="white"
-                        _hover={{ bg: "blue.700" }}
+                        bg={isActive("/history") ? COLORS.primary : "transparent"}
+                        _hover={{ bg: COLORS.primary }}
                         onClick={() => navigate("/history")}
                     >
                         Histórico
@@ -85,7 +98,7 @@ export const Navigation = () => {
 
                     <Menu.Root>
                         <Menu.Trigger asChild>
-                            <Button bg="blue" variant="outline" color="white">
+                            <Button bg={COLORS.primary} variant="solid" color="white" _hover={{ bg: COLORS.accent }}>
                                 {user?.fullName}
                             </Button>
                         </Menu.Trigger>

@@ -14,11 +14,10 @@ interface StatCardProps {
 export const StatCard = ({ label, value, valueColor = "gray.800", action }: StatCardProps) => {
     return (
         <Card.Root
-            bg="white"
+            bg="bg.card"
             border="1px solid"
-            borderColor="gray.200"
-            shadow="md"
-            _hover={{ boxShadow: "lg", transform: "translateY(-2px)", transition: "all 0.3s ease" }}
+            borderColor="border.default"
+            _hover={{ boxShadow: "xl", transform: "translateY(-4px)", transition: "all 0.3s ease", borderColor: "primary.500" }}
         >
             <Card.Body p="6">
                 <VStack align="stretch" gap="3">

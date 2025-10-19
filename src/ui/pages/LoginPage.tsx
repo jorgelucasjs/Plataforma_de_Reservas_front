@@ -15,7 +15,7 @@ import {
 import { useState } from "react";
 import { useAuthStore } from "../../stores/authStore";
 import { toaster } from "../components/ui/toaster";
-import { APPCOLOR } from "@/utils/colors";
+import { COLORS } from "@/utils/colors";
 import { LuEye, LuEyeOff } from "react-icons/lu";
 import { InputGroup } from "../components/ui/input-group";
 
@@ -130,10 +130,10 @@ export const LoginPage = () => {
         <Container maxW="md" py={{ base: "12", md: "24" }}>
             <Stack >
                 <Box textAlign="center">
-                    <Heading size="xl" mb="1">
+                    <Heading size="xl" mb="1" color={COLORS.navy}>
                         AgendaSmart
                     </Heading>
-                    <Text color="gray.600">Plataforma de Contratação de Serviços</Text>
+                    <Text color={COLORS.textSecondary}>Plataforma de Contratação de Serviços</Text>
                 </Box>
 
                 <Tabs.Root
@@ -185,7 +185,7 @@ export const LoginPage = () => {
                                             onClick={() => setShowLoginPassword(!showLoginPassword)}
                                             aria-label={showLoginPassword ? "Ocultar senha" : "Mostrar senha"}
                                         >
-                                            {showLoginPassword ? <LuEyeOff color={APPCOLOR} /> : <LuEye color={APPCOLOR} />}
+                                            {showLoginPassword ? <LuEyeOff color={COLORS.primary} /> : <LuEye color={COLORS.primary} />}
                                         </IconButton>
                                     }
                                 >
@@ -202,10 +202,12 @@ export const LoginPage = () => {
                             </Field.Root>
 
                             <Button
-                                bg={APPCOLOR}
+                                bg={COLORS.primary}
+                                color="white"
                                 width="full"
                                 onClick={handleLogin}
                                 loading={isLoading}
+                                _hover={{ bg: COLORS.accent }}
                             >
                                 Autenticar
                             </Button>
@@ -274,7 +276,7 @@ export const LoginPage = () => {
                                             onClick={() => setShowRegisterPassword(!showRegisterPassword)}
                                             aria-label={showRegisterPassword ? "Ocultar senha" : "Mostrar senha"}
                                         >
-                                            {showRegisterPassword ? <LuEyeOff color={APPCOLOR} /> : <LuEye color={APPCOLOR} />}
+                                            {showRegisterPassword ? <LuEyeOff color={COLORS.primary} /> : <LuEye color={COLORS.primary} />}
                                         </IconButton>
                                     }
                                 >
@@ -296,10 +298,13 @@ export const LoginPage = () => {
                                     <Stack direction="row">
                                         <Button
                                             flex="1"
-                                            color={"#fff"}
+                                            color={"white"}
                                             bg={
-                                                registerData.userType === "client" ? "#000" : "gray"
+                                                registerData.userType === "client" ? COLORS.navy : "gray.400"
                                             }
+                                            _hover={{
+                                                bg: registerData.userType === "client" ? COLORS.primary : "gray.500"
+                                            }}
                                             onClick={() =>
                                                 setRegisterData({ ...registerData, userType: "client" })
                                             }
@@ -308,10 +313,13 @@ export const LoginPage = () => {
                                         </Button>
                                         <Button
                                             flex="1"
-                                            color={"#fff"}
+                                            color={"white"}
                                             bg={
-                                                registerData.userType === "provider" ? "#000" : "gray"
+                                                registerData.userType === "provider" ? COLORS.navy : "gray.400"
                                             }
+                                            _hover={{
+                                                bg: registerData.userType === "provider" ? COLORS.primary : "gray.500"
+                                            }}
                                             onClick={() =>
                                                 setRegisterData({ ...registerData, userType: "provider" })
                                             }
@@ -323,10 +331,12 @@ export const LoginPage = () => {
                             </Fieldset.Root>
 
                             <Button
-                                bg={APPCOLOR}
+                                bg={COLORS.primary}
+                                color="white"
                                 width="full"
                                 onClick={handleRegister}
                                 loading={isLoading}
+                                _hover={{ bg: COLORS.accent }}
                             >
                                 Registar
                             </Button>

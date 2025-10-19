@@ -52,14 +52,14 @@ export const DashboardPage = () => {
                 <Heading
                     size="2xl"
                     bgGradient="to-r"
-                    gradientFrom="blue.400"
-                    gradientTo="purple.500"
+                    gradientFrom="primary.500"
+                    gradientTo="navy.500"
                     bgClip="text"
                     mb="2"
                 >
                     Bem-vindo, {user?.fullName}!
                 </Heading>
-                <Text color="gray.600" fontSize="lg">
+                <Text color="text.secondary" fontSize="lg">
                     {user?.userType === "provider" ? "Gerencie seus serviços e acompanhe seu negócio" : "Explore serviços e gerencie suas reservas"}
                 </Text>
             </Box>
@@ -72,13 +72,13 @@ export const DashboardPage = () => {
                 <StatCard
                     label="Saldo"
                     value={`$${user?.balance?.toFixed(2) ?? "0.00"}`}
-                    valueColor="green.600"
+                    valueColor="primary.600"
                     action={
                         user?.userType === "client"
                             ? {
                                   label: "Carregar Conta",
                                   onClick: () => setIsBalanceModalOpen(true),
-                                  colorScheme: "green",
+                                  colorScheme: "primary",
                               }
                             : undefined
                     }
@@ -88,7 +88,7 @@ export const DashboardPage = () => {
                     <StatCard
                         label="Meus Serviços"
                         value={myServices?.length ?? 0}
-                        valueColor="blue.600"
+                        valueColor="navy.600"
                     />
                 )}
 
@@ -96,14 +96,14 @@ export const DashboardPage = () => {
                     <StatCard
                         label="Minhas Reservas"
                         value={bookings?.length ?? 0}
-                        valueColor="purple.600"
+                        valueColor="accent.600"
                     />
                 )}
 
                 <StatCard
                     label="Tipo de Conta"
                     value={user?.userType === "provider" ? "Prestador" : "Cliente"}
-                    valueColor="gray.800"
+                    valueColor="navy.700"
                 />
             </Grid>
 

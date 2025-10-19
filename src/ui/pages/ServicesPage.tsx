@@ -115,7 +115,7 @@ export const ServicesPage = () => {
 
     return (
         <Container maxW="6xl">
-            <Heading mb="6">
+            <Heading mb="6" color="navy.700">
                 {user?.userType === "provider" ? "Meus Serviços" : "Serviços Disponíveis"}
             </Heading>
 
