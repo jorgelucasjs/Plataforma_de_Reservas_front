@@ -1,5 +1,5 @@
 import { getData } from "@/dao/localStorage"
-import type { User } from "@/types"
+import type { User } from "@/types/auth";
 
 
 export const LOCALSTORAGE_USERDATA = 'LOCAL_STORAGE_USER_DATA'
