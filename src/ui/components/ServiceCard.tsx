@@ -33,7 +33,7 @@ export const ServiceCard = ({
         >
             <Card.Body>
                 <VStack align="start">
-                    <Heading size="md">{name}</Heading>
+                    <Heading size="md" color={"#000"} fontWeight={"bold"}>{name}</Heading>
                     <Text fontSize="sm" color="gray.600" lineClamp={3}>
                         {description}
                     </Text>

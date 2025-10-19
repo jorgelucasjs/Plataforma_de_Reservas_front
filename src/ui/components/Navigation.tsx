@@ -20,6 +20,8 @@ export const Navigation = () => {
         window.location.href = "/login"
     };
 
+    console.log("location.pathname", location.pathname)
+
     return (
         <Box bg={COLORS.navy} py="4" px="6" mb="8" >
             <Flex justify="space-between" align="center" maxW="6xl" mx="auto">
@@ -52,7 +54,8 @@ export const Navigation = () => {
                                 Meus Serviços
                             </Button>
                             <Button
-                                bg={isActive("/services/new") ? COLORS.accent : COLORS.primary}
+                                variant="ghost"
+                                bg={location.pathname === "/services/new" ? COLORS.primary : "transparent"}
                                 color="white"
                                 _hover={{ bg: COLORS.accent }}
                                 onClick={() => navigate("/services/new")}

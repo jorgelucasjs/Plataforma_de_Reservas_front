@@ -17,7 +17,7 @@ export const StatCard = ({ label, value, valueColor = "gray.800", action }: Stat
             bg="bg.card"
             border="1px solid"
             borderColor="border.default"
-            _hover={{ boxShadow: "xl", transform: "translateY(-4px)", transition: "all 0.3s ease", borderColor: "primary.500" }}
+            //_hover={{ boxShadow: "xl", transform: "translateY(-4px)", transition: "all 0.3s ease", borderColor: "primary.500" }}
         >
             <Card.Body p="6">
                 <VStack align="stretch" gap="3">
@@ -32,7 +32,9 @@ export const StatCard = ({ label, value, valueColor = "gray.800", action }: Stat
 
                     {action && (
                         <Button
-                            bg={action.colorScheme || "blue"}
+                            bg="primary.500"
+                            color="white"
+                            _hover={{ bg: "accent.500" }}
                             size="sm"
                             onClick={action.onClick}
                         >

@@ -77,10 +77,9 @@ export const DashboardPage = () => {
                     action={
                         user?.userType === "client"
                             ? {
-                                  label: "Carregar Conta",
-                                  onClick: () => setIsBalanceModalOpen(true),
-                                  colorScheme: "primary",
-                              }
+                                label: "Carregar Conta",
+                                onClick: () => setIsBalanceModalOpen(true),
+                            }
                             : undefined
                     }
                 />

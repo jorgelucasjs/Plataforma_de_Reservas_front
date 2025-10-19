@@ -60,12 +60,12 @@ export const AddBalanceModal = ({ isOpen, onClose, userEmail }: AddBalanceModalP
 
   return (
     <DialogRoot open={isOpen} onOpenChange={(e) => !e.open && onClose()}>
-      <DialogContent>
+      <DialogContent bg={"#fff"}>
         <DialogHeader>
           <DialogTitle>Carregar Conta</DialogTitle>
           <DialogCloseTrigger />
         </DialogHeader>
-        <DialogBody>
+        <DialogBody >
           <VStack gap="4" align="stretch">
             <Text color="gray.600">
               Adicione saldo à sua conta para realizar reservas
