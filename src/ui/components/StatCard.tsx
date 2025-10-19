@@ -32,7 +32,7 @@ export const StatCard = ({ label, value, valueColor = "gray.800", action }: Stat
 
                     {action && (
                         <Button
-                            colorScheme={action.colorScheme || "blue"}
+                            bg={action.colorScheme || "blue"}
                             size="sm"
                             onClick={action.onClick}
                         >

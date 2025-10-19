@@ -11,6 +11,7 @@ export const BookingsPage = () => {
     const { bookings, fetchMyBookings, cancelBooking, isLoading } = useBookingStore();
     const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
     const [isOpen, setIsOpen] = useState(false);
+    const [isCancelling, setIsCancelling] = useState(false);
 
     const onOpen = () => setIsOpen(true);
     const onClose = () => setIsOpen(false);
@@ -21,8 +22,9 @@ export const BookingsPage = () => {
 
     const handleCancelBooking = async () => {
         if (!selectedBookingId) return;
+        setIsCancelling(true);
         try {
-            await cancelBooking(selectedBookingId);
+            await cancelBooking(selectedBookingId, "Cancelado pelo cliente");
             toaster.create({ title: "Reserva cancelada!", type: "success" });
             onClose();
         } catch (error: any) {
@@ -30,6 +32,8 @@ export const BookingsPage = () => {
                 title: error.response?.data?.message || "Erro ao cancelar reserva",
                 type: "error",
             });
+        } finally {
+            setIsCancelling(false);
         }
     };
 
@@ -71,6 +75,7 @@ export const BookingsPage = () => {
                 message="Tem a certeza que deseja cancelar esta reserva?"
                 confirmText="Sim, Cancelar"
                 cancelText="Não"
+                isLoading={isCancelling}
             />
         </Container>
     );

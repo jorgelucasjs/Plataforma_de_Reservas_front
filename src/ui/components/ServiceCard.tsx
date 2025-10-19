@@ -1,4 +1,5 @@
 import { Badge, Button, Card, Heading, HStack, Text, VStack } from "@chakra-ui/react";
+import { convertToKwanzaMoney } from "@/utils/constants";
 
 interface ServiceCardProps {
     id: string;
@@ -38,7 +39,7 @@ export const ServiceCard = ({
                     </Text>
                     <HStack justify="space-between" width="full">
                         <Badge bg="primary.500" color="white" fontSize="md" px="3" py="1" borderRadius="md">
-                            ${price.toFixed(2)}
+                            {convertToKwanzaMoney(price, false)}
                         </Badge>
                         <Text fontSize="xs" color="text.muted">
                             {providerName}

@@ -1,6 +1,7 @@
 import { Container, Heading, Stack, HStack, Input, Badge, Box, Card, Spinner, VStack, Text, Grid } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useBookingStore } from "../../stores/bookingStore";
+import { convertToKwanzaMoney } from "@/utils/constants";
 
 export const HistoryPage = () => {
     const { history, fetchHistory, isLoading } = useBookingStore();
@@ -84,7 +85,7 @@ export const HistoryPage = () => {
                                             Prestador: {booking.providerName}
                                         </Text>
                                         <Text fontSize="md" fontWeight="bold" color="primary.600">
-                                            ${booking.amount.toFixed(2)}
+                                            {convertToKwanzaMoney(booking.amount, false)}
                                         </Text>
                                         <Text fontSize="xs" color="text.muted">
                                             {new Date(booking.createdAt).toLocaleDateString()}

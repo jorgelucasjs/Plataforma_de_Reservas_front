@@ -4,6 +4,7 @@ import { useAuthStore } from "../../stores/authStore";
 import { COLORS } from "@/utils/colors";
 import { LOCALSTORAGE_USERDATA } from "@/utils/LocalstorageKeys";
 import { getData } from "@/dao/localStorage";
+import { LuChevronDown } from "react-icons/lu";
 
 export const Navigation = () => {
     const navigate = useNavigate();
@@ -100,6 +101,7 @@ export const Navigation = () => {
                         <Menu.Trigger asChild>
                             <Button bg={COLORS.primary} variant="solid" color="white" _hover={{ bg: COLORS.accent }}>
                                 {user?.fullName}
+                                <LuChevronDown />
                             </Button>
                         </Menu.Trigger>
                         <Menu.Positioner>

@@ -10,6 +10,7 @@ import { AddBalanceModal } from "../components/AddBalanceModal";
 import { StatCard } from "../components/StatCard";
 import { RecentItemsList } from "../components/RecentItemsList";
 import type { User } from "@/types";
+import { convertToKwanzaMoney } from "@/utils/constants";
 
 export const DashboardPage = () => {
     const navigate = useNavigate();
@@ -71,7 +72,7 @@ export const DashboardPage = () => {
             >
                 <StatCard
                     label="Saldo"
-                    value={`$${user?.balance?.toFixed(2) ?? "0.00"}`}
+                    value={convertToKwanzaMoney(user?.balance ?? 0, false)}
                     valueColor="primary.600"
                     action={
                         user?.userType === "client"
@@ -113,7 +114,7 @@ export const DashboardPage = () => {
                     items={myServices.slice(0, 3).map((service) => ({
                         id: service.id,
                         title: service.name,
-                        subtitle: `$${service.price.toFixed(2)}`,
+                        subtitle: convertToKwanzaMoney(service.price, false),
                         action: {
                             label: "Editar",
                             onClick: () => navigate(`/services/${service.id}/edit`),
@@ -128,7 +129,7 @@ export const DashboardPage = () => {
                     items={bookings.slice(0, 3).map((booking) => ({
                         id: booking.id,
                         title: booking.serviceName,
-                        subtitle: `$${booking.amount.toFixed(2)}`,
+                        subtitle: convertToKwanzaMoney(booking.amount, false),
                     }))}
                 />
             )}

@@ -16,6 +16,7 @@ import {
 } from "@/ui/components/ui/dialog";
 import { useUserStore } from "@/stores/userStore";
 import { toaster } from "@/ui/components/ui/toaster";
+import { convertToKwanzaMoney } from "@/utils/constants";
 
 interface AddBalanceModalProps {
   isOpen: boolean;
@@ -43,7 +44,7 @@ export const AddBalanceModal = ({ isOpen, onClose, userEmail }: AddBalanceModalP
       await addBalance(userEmail, numAmount);
       toaster.create({
         title: "Sucesso!",
-        description: `Saldo de $${numAmount.toFixed(2)} adicionado com sucesso`,
+        description: `Saldo de ${convertToKwanzaMoney(numAmount, false)} adicionado com sucesso`,
         type: "success",
       });
       setAmount("");

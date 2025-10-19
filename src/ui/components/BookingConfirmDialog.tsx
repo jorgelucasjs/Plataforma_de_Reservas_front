@@ -1,5 +1,6 @@
 import { Box, Button, Dialog, Text, VStack } from "@chakra-ui/react";
 import { APPCOLOR } from "@/utils/colors";
+import { convertToKwanzaMoney } from "@/utils/constants";
 
 interface BookingConfirmDialogProps {
     isOpen: boolean;
@@ -32,7 +33,7 @@ export const BookingConfirmDialog = ({
                             <Box p="3" bg="gray.50" borderRadius="md" width="full">
                                 <Text fontWeight="semibold" mb="1">Valor do serviço:</Text>
                                 <Text fontSize="2xl" fontWeight="bold" color="green.600">
-                                    ${price.toFixed(2)}
+                                    {convertToKwanzaMoney(price, false)}
                                 </Text>
                             </Box>
                             <Text fontSize="sm" color="gray.600">

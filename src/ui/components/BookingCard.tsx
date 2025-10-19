@@ -1,4 +1,5 @@
 import { Badge, Button, Card, Heading, HStack, Text, VStack } from "@chakra-ui/react";
+import { convertToKwanzaMoney } from "@/utils/constants";
 
 interface BookingCardProps {
     id: string;
@@ -34,7 +35,7 @@ export const BookingCard = ({
                         </Badge>
                     </HStack>
                     <Text fontSize="sm" color="text.secondary">Prestador: {providerName}</Text>
-                    <Text fontSize="sm" fontWeight="bold" color="primary.600">Valor: ${amount.toFixed(2)}</Text>
+                    <Text fontSize="sm" fontWeight="bold" color="primary.600">Valor: {convertToKwanzaMoney(amount, false)}</Text>
                     <Text fontSize="xs" color="text.muted">
                         {new Date(createdAt).toLocaleDateString()}
                     </Text>
