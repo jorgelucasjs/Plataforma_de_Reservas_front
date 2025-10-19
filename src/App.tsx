@@ -11,6 +11,7 @@ import { BookingsPage } from "./ui/pages/BookingsPage";
 import { HistoryPage } from "./ui/pages/HistoryPage";
 import { ProfilePage } from "./ui/pages/ProfilePage";
 import { Navigation } from "./ui/components/Navigation";
+import { Toaster } from "./ui/components/ui/toaster";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuthStore();
@@ -102,6 +103,7 @@ export function App() {
 
           <Route path="/" element={<Navigate to="/dashboard" />} />
         </Routes>
+         <Toaster />
       </BrowserRouter>
     </ChakraProvider>
   );

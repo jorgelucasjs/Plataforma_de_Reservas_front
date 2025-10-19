@@ -16,7 +16,7 @@ export const Navigation = () => {
             <Flex justify="space-between" align="center" maxW="6xl" mx="auto">
                 <Box>
                     <Text fontSize="xl" fontWeight="bold" color="white">
-                        AgendaLa
+                        AgendaSmart
                     </Text>
                 </Box>
 

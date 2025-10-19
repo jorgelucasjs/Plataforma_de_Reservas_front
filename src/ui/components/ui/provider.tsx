@@ -5,11 +5,11 @@ import {
   ColorModeProvider,
   type ColorModeProviderProps,
 } from "./color-mode"
-import systemMoMenu from "@/libs/chakra-ui-api/theme"
+import { system } from "@/theme"
 
 export function Provider(props: ColorModeProviderProps) {
   return (
-    <ChakraProvider value={systemMoMenu}>
+    <ChakraProvider value={system}>
       <ColorModeProvider {...props} />
     </ChakraProvider>
   )
