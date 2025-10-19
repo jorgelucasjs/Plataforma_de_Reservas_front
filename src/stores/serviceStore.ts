@@ -61,25 +61,25 @@ export const useServiceStore = create<ServiceStore>((set, get) => ({
     const { services, myServices } = get();
     
     // Add to general services list
-    set({ services: [service, ...services] });
+    set({ services: [service, ...(services || [])] });
     
     // Add to myServices if it belongs to current user
     // Note: This will be determined by the repository layer
-    set({ myServices: [service, ...myServices] });
+    set({ myServices: [service, ...(myServices || [])] });
   },
 
   updateService: (id: string, serviceUpdates: Partial<Service>) => {
     const { services, myServices } = get();
     
     // Update in general services list
-    const updatedServices = services.map(service =>
+    const updatedServices = (services || []).map(service =>
       service.id === id 
         ? { ...service, ...serviceUpdates, updatedAt: new Date().toISOString() }
         : service
     );
     
     // Update in myServices list
-    const updatedMyServices = myServices.map(service =>
+    const updatedMyServices = (myServices || []).map(service =>
       service.id === id 
         ? { ...service, ...serviceUpdates, updatedAt: new Date().toISOString() }
         : service
@@ -95,10 +95,10 @@ export const useServiceStore = create<ServiceStore>((set, get) => ({
     const { services, myServices } = get();
     
     // Remove from general services list
-    const filteredServices = services.filter(service => service.id !== id);
+    const filteredServices = (services || []).filter(service => service.id !== id);
     
     // Remove from myServices list
-    const filteredMyServices = myServices.filter(service => service.id !== id);
+    const filteredMyServices = (myServices || []).filter(service => service.id !== id);
     
     set({ 
       services: filteredServices,
@@ -164,8 +164,8 @@ export const useServiceUiState = () => {
     clearServices,
     
     // Computed values
-    hasServices: services.length > 0,
-    hasMyServices: myServices.length > 0,
+    hasServices: services?.length > 0,
+    hasMyServices: myServices?.length > 0,
     isSearching: Boolean(filters.search),
     isFiltered: Boolean(filters.minPrice || filters.maxPrice),
     

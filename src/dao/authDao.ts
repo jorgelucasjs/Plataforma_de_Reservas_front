@@ -10,7 +10,12 @@ import type { LoginCredentials, RegisterData, AuthResponse } from '../types/auth
  */
 export async function loginUser(credentials: LoginCredentials): Promise<AuthResponse> {
 	try {
-		const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
+		// Converter identifier para email para compatibilidade com a API
+		const loginData = {
+			email: credentials.identifier,
+			password: credentials.password
+		};
+		const response = await apiClient.post<AuthResponse>('/auth/login', loginData);
 		return response;
 	} catch (error) {
 		// Re-throw the error as it's already properly formatted by the API client
@@ -78,7 +83,7 @@ export async function verifyToken(): Promise<boolean> {
  */
 export async function getCurrentUser(): Promise<import('../types/auth').User> {
 	try {
-		const response = await apiClient.get<import('../types/auth').User>('/auth/me');
+		const response = await apiClient.get<import('../types/auth').User>('/users/profile');
 		return response;
 	} catch (error) {
 		throw error;

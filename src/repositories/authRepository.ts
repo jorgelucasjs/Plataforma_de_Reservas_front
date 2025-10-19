@@ -32,6 +32,14 @@ export class AuthRepository {
       // Save token to storage
       tokenService.saveToken(response.token, response.expiresIn);
 
+      // Save user data to localStorage
+      const userDataToSave: User = {
+        ...response.user,
+        token: response.token,
+        expiresIn: response.expiresIn
+      };
+      setData(LOCALSTORAGE_USERDATA, userDataToSave);
+
       // Update auth store
       setToken(response.token);
       setUser(response.user);

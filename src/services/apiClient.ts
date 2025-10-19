@@ -8,10 +8,9 @@ import { retryService } from './retryService';
 import { cacheService, staticDataCache } from './cacheService';
 
 const baseURL = window.location.hostname === "localhost" ?
-  "http://127.0.0.1:5002/angolaeventos-cd238/us-central1/sistemaDeReservaServer"
+  "/api" // Usar proxy para evitar CORS
   :
-
-  "https://sistemadereservaserver-33vs75arbq-uc.a.run.app"
+  "https://your-firebase-project.cloudfunctions.net/agendaLaServer"
 
 // Helper function to create AppError objects
 function createAppError(error: AppError): AppError {
@@ -187,13 +186,17 @@ class ApiClient {
   // Initialize known routes based on expected API endpoints
   private initializeKnownRoutes(): void {
     this.knownRoutes.add('/services');
-    this.knownRoutes.add('/services/my-services');
+    this.knownRoutes.add('/services/my');
     this.knownRoutes.add('/auth/login');
+    this.knownRoutes.add('/auth/register');
     this.knownRoutes.add('/auth/verify');
     this.knownRoutes.add('/users/profile');
+    this.knownRoutes.add('/users/balance');
     this.knownRoutes.add('/bookings');
-    this.knownRoutes.add('/bookings/my-bookings');
-    this.knownRoutes.add('/health');
+    this.knownRoutes.add('/bookings/my');
+    this.knownRoutes.add('/bookings/history');
+    this.knownRoutes.add('/admin/health');
+    this.knownRoutes.add('/admin/status');
   }
 
   // Set token provider function
@@ -255,8 +258,8 @@ class ApiClient {
   // Get fallback route for missing routes
   private getFallbackRoute(missingRoute: string): string | undefined {
     const fallbackMap: Record<string, string> = {
-      '/services/my-services': '/services', // Fallback to general services endpoint
-      '/bookings/my-bookings': '/bookings', // Fallback to general bookings endpoint
+      '/services/my-services': '/services/my', // Fallback to correct endpoint
+      '/bookings/my-bookings': '/bookings/my', // Fallback to correct endpoint
     };
 
     return fallbackMap[missingRoute];

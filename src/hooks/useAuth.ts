@@ -12,12 +12,9 @@ export function useAuth() {
         error,
         isInitialized,
         lastTokenCheck,
-        setToken,
-        setIsAuthenticated,
         setLoading,
         setError,
         setIsInitialized,
-        setLastTokenCheck,
         logout: storeLogout,
     } = useAuthStore();
 

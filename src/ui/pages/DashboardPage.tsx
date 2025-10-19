@@ -35,9 +35,15 @@ import { CURRENT_USER_INFO } from '@/utils/LocalstorageKeys';
 export function DashboardPage() {
 
     const user = CURRENT_USER_INFO
-    const isClient = CURRENT_USER_INFO.userType === "client" ? true : false
-    const isProvider = CURRENT_USER_INFO.userType === "provider" ? true : false
+    const isClient = CURRENT_USER_INFO?.userType === "client" ? true : false
+    const isProvider = CURRENT_USER_INFO?.userType === "provider" ? true : false
     const navigate = useNavigate();
+
+    // If no user is logged in, redirect to login
+    if (!user) {
+        navigate('/login');
+        return null;
+    }
 
     // Store states
     const { currentBalance } = useUserUiState();
@@ -78,21 +84,14 @@ export function DashboardPage() {
 
     // Load user profile and balance
     const loadProfileData = async () => {
-        if (loadingRef.current.profile) {
-            console.log('Profile loading already in progress, skipping...');
-            return;
-        }
+        if (loadingRef.current.profile) return;
 
         try {
             updateLoadingState('profile', true);
             updateErrorState('profile', null);
-
             await userRepository.loadProfile();
-
-            console.log('Profile data loaded successfully');
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to load profile data';
-            console.error('Error loading profile data:', error);
             updateErrorState('profile', errorMessage);
         } finally {
             updateLoadingState('profile', false);
@@ -102,12 +101,10 @@ export function DashboardPage() {
     // Load services data based on user type
     const loadServicesData = async () => {
         if (loadingRef.current.services) {
-            console.log('Services loading already in progress, skipping...');
             return;
         }
 
         if (!user) {
-            console.log('No user available, skipping services load');
             return;
         }
 
@@ -116,28 +113,13 @@ export function DashboardPage() {
             updateErrorState('services', null);
 
             if (isProvider) {
-                // Load provider-specific services
-                console.log('Loading provider services...');
                 await serviceRepository.loadMyServices();
             } else if (isClient) {
-                // Load available services for clients
-                console.log('Loading available services for client...');
                 await serviceRepository.loadServices();
-            } else {
-                console.warn('Unknown user type, skipping services load:', user.userType);
-                return;
             }
-
-            console.log('Services data loaded successfully');
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to load services data';
-            console.error('Error loading services data:', error);
             updateErrorState('services', errorMessage);
-
-            // Don't retry automatically for authorization errors
-            if (error && typeof error === 'object' && 'type' in error && error.type === 'AUTHORIZATION_ERROR') {
-                console.warn('Authorization error loading services, user may not have access');
-            }
         } finally {
             updateLoadingState('services', false);
         }
@@ -145,69 +127,36 @@ export function DashboardPage() {
 
     // Load bookings data
     const loadBookingsData = async () => {
-        if (loadingRef.current.bookings) {
-            console.log('Bookings loading already in progress, skipping...');
-            return;
-        }
-
-        if (!user) {
-            console.log('No user available, skipping bookings load');
+        if (loadingRef.current.bookings || !user) {
             return;
         }
 
         try {
             updateLoadingState('bookings', true);
             updateErrorState('bookings', null);
-
-            console.log('Loading user bookings...');
             await bookingRepository.loadMyBookings();
-
-            console.log('Bookings data loaded successfully');
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to load bookings data';
-            console.error('Error loading bookings data:', error);
             updateErrorState('bookings', errorMessage);
         } finally {
             updateLoadingState('bookings', false);
         }
     };
 
-    // Load dashboard data on mount with conditional loading
+    // Load dashboard data on mount
     useEffect(() => {
         const loadDashboardData = async () => {
-            if (!user) {
-                console.log('No user available, skipping dashboard data load');
-                return;
-            }
+            if (!user) return;
 
-            console.log(`Loading dashboard data for ${user.userType}: ${user.fullName}`);
-
-            // Load profile data (always needed)
             await loadProfileData();
-
-            // Load data based on user type
-            if (isProvider) {
-                console.log('Loading provider-specific data...');
-                await Promise.all([
-                    loadServicesData(), // Provider services
-                    loadBookingsData()  // Provider bookings
-                ]);
-            } else if (isClient) {
-                console.log('Loading client-specific data...');
-                await Promise.all([
-                    loadServicesData(), // Available services
-                    loadBookingsData()  // Client bookings
-                ]);
-            } else {
-                console.warn('Unknown user type, loading minimal data:', user.userType);
-                await loadBookingsData(); // At least try to load bookings
-            }
-
-            console.log('Dashboard data loading completed');
+            await Promise.all([
+                loadServicesData(),
+                loadBookingsData()
+            ]);
         };
 
         loadDashboardData();
-    }, [user?.id, user?.userType]); // Only re-run if user ID or type changes
+    }, [user?.id, user?.userType]);
 
     // Quick action handlers
     const handleCreateService = () => {

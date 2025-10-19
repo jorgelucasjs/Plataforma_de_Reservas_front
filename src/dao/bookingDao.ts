@@ -88,7 +88,7 @@ export async function getMyBookings(filters?: BookingFilters): Promise<BookingLi
     }
 
     const queryString = params.toString();
-    const url = queryString ? `/bookings/my-bookings?${queryString}` : '/bookings/my-bookings';
+    const url = queryString ? `/bookings/my?${queryString}` : '/bookings/my';
     
     const response = await apiClient.get<BookingListResponse>(url);
     return response;

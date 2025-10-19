@@ -13,10 +13,14 @@ export interface Booking {
   createdAt: string;
   cancelledAt?: string;
   cancellationReason?: string;
+  scheduledDate?: string; // Data agendada para o serviço
+  notes?: string; // Notas adicionais do cliente
 }
 
 export interface BookingCreateData {
   serviceId: string;
+  scheduledDate?: string; // Data agendada para o serviço (ISO 8601)
+  notes?: string; // Notas adicionais do cliente
 }
 
 export interface BookingCancelData {
