@@ -7,6 +7,7 @@ export interface User {
   balance: number;
   createdAt: string;
   isActive: boolean;
+  token?: ""
 }
 
 export interface Service {
@@ -36,9 +37,11 @@ export interface Booking {
 }
 
 export interface AuthResponse {
-  token: string;
-  expiresIn: string;
-  user: User;
+  data: {
+    token: string;
+    expiresIn: string;
+    user: User;
+  }
 }
 
 export interface ApiResponse<T> {

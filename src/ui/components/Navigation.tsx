@@ -71,7 +71,7 @@ export const Navigation = () => {
                     </Button>
 
                     <Menu.Root>
-                        <Menu.Trigger>
+                        <Menu.Trigger asChild>
                             <Button colorScheme="blue" variant="outline" color="white">
                                 {user?.fullName}
                             </Button>

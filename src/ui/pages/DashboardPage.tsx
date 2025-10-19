@@ -11,19 +11,25 @@ import {
     HStack,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "../../stores/authStore";
 import { useServiceStore } from "../../stores/serviceStore";
 import { useBookingStore } from "../../stores/bookingStore";
 import { useEffect } from "react";
+import { LOCALSTORAGE_USERDATA } from "@/utils/LocalstorageKeys";
+import { getData } from "@/dao/localStorage";
 
 export const DashboardPage = () => {
     const navigate = useNavigate();
-    const { user, refreshProfile } = useAuthStore();
+    //const { user } = useAuthStore();
     const { myServices, fetchMyServices } = useServiceStore();
     const { bookings, fetchMyBookings } = useBookingStore();
 
+    // Lê o localStorage dinamicamente
+    const user = getData(LOCALSTORAGE_USERDATA);
+
+    console.log("user", user)
+
     useEffect(() => {
-        refreshProfile();
+    
         if (user?.userType === "provider") {
             fetchMyServices();
         } else {
@@ -45,7 +51,7 @@ export const DashboardPage = () => {
                         <Stat.Root>
                             <Stat.Label>Saldo</Stat.Label>
                             <Stat.ValueText color="green.600" fontSize="2xl">
-                                ${user?.balance.toFixed(2)}
+                                ${user?.balance?.toFixed(2) ?? "0.00"}
                             </Stat.ValueText>
                         </Stat.Root>
                     </Card.Body>
