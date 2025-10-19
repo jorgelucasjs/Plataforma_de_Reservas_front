@@ -13,6 +13,7 @@ import { Navigation } from "./ui/components/Navigation";
 import { Toaster } from "./ui/components/ui/toaster";
 import ProtectedRoute from "./ui/routes/ProtectedRoute";
 import { ColorModeProvider } from "./ui/components/ui/color-mode";
+import { LandingPage } from "./ui/pages/LandingPage";
 
 export function App() {
 
@@ -21,6 +22,7 @@ export function App() {
 			<ColorModeProvider defaultTheme="light" forcedTheme="light">
 				<BrowserRouter>
 					<Routes>
+						<Route path="/" element={<LandingPage />} />
 						<Route path="/login" element={<LoginPage />} />
 
 						<Route
