@@ -8,6 +8,7 @@ interface ServiceCardProps {
     price: number;
     providerName: string;
     userType: "provider" | "client";
+    isHired?: boolean;
     onEdit?: () => void;
     onDelete?: () => void;
     onBook?: () => void;
@@ -19,6 +20,7 @@ export const ServiceCard = ({
     price,
     providerName,
     userType,
+    isHired = false,
     onEdit,
     onDelete,
     onBook,
@@ -58,8 +60,17 @@ export const ServiceCard = ({
                             </>
                         )}
                         {userType === "client" && (
-                            <Button bg="primary.500" color="white" _hover={{ bg: "accent.500" }} size="sm" width="full" onClick={onBook}>
-                                Contratar
+                            <Button 
+                                bg={isHired ? "gray.400" : "primary.500"} 
+                                color="white" 
+                                _hover={isHired ? {} : { bg: "accent.500" }} 
+                                size="sm" 
+                                width="full" 
+                                onClick={onBook}
+                                disabled={isHired}
+                                cursor={isHired ? "not-allowed" : "pointer"}
+                            >
+                                {isHired ? "Já Contratado" : "Contratar"}
                             </Button>
                         )}
                     </HStack>

@@ -12,6 +12,9 @@ import { EmptyState } from "../components/EmptyState";
 import { ServiceCard } from "../components/ServiceCard";
 import { BookingConfirmDialog } from "../components/BookingConfirmDialog";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { getData, setData } from "@/dao/localStorage";
+
+const HIRED_SERVICES_KEY = "hired_services";
 
 export const ServicesPage = () => {
     const navigate = useNavigate();
@@ -27,9 +30,18 @@ export const ServicesPage = () => {
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [isBookingOpen, setIsBookingOpen] = useState(false);
     const [isBookingLoading, setIsBookingLoading] = useState(false);
+    const [hiredServices, setHiredServices] = useState<Set<string>>(new Set());
 
     const onDeleteOpen = () => setIsDeleteOpen(true);
     const onDeleteClose = () => setIsDeleteOpen(false);
+
+    // Carregar serviços contratados do localStorage
+    useEffect(() => {
+        const stored = getData(HIRED_SERVICES_KEY);
+        if (stored && Array.isArray(stored)) {
+            setHiredServices(new Set(stored));
+        }
+    }, []);
     const onBookingOpen = () => setIsBookingOpen(true);
     const onBookingClose = () => setIsBookingOpen(false);
 
@@ -56,12 +68,18 @@ export const ServicesPage = () => {
         setIsBookingLoading(true);
         try {
             await createBooking(selectedServiceId, selectedServicePrice);
-            
+
+            // Salvar no localStorage
+            const newHiredServices = new Set(hiredServices);
+            newHiredServices.add(selectedServiceId);
+            setHiredServices(newHiredServices);
+            setData(HIRED_SERVICES_KEY, Array.from(newHiredServices));
+
             // Atualiza o saldo do usuário após contratar o serviço
             if (user?.email) {
                 await fetchUserByEmail(user.email);
             }
-            
+
             toaster.create({
                 title: "Serviço",
                 description: "Serviço contratado com sucesso!",
@@ -145,6 +163,7 @@ export const ServicesPage = () => {
                             price={service.price}
                             providerName={service.providerName}
                             userType={user?.userType || "client"}
+                            isHired={hiredServices.has(service.id)}
                             onEdit={() => navigate(`/services/${service.id}/edit`)}
                             onDelete={() => {
                                 setSelectedServiceId(service.id);

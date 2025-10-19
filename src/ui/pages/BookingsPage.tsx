@@ -6,6 +6,9 @@ import { LoadingSpinner } from "../components/LoadingSpinner";
 import { EmptyState } from "../components/EmptyState";
 import { BookingCard } from "../components/BookingCard";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { getData, setData } from "@/dao/localStorage";
+
+const HIRED_SERVICES_KEY = "hired_services";
 
 export const BookingsPage = () => {
     const { bookings, fetchMyBookings, cancelBooking, isLoading } = useBookingStore();
@@ -24,7 +27,20 @@ export const BookingsPage = () => {
         if (!selectedBookingId) return;
         setIsCancelling(true);
         try {
+            // Encontrar o booking para obter o serviceId
+            const booking = bookings?.find(b => b.id === selectedBookingId);
+            
             await cancelBooking(selectedBookingId, "Cancelado pelo cliente");
+            
+            // Remover do localStorage
+            if (booking?.serviceId) {
+                const stored = getData(HIRED_SERVICES_KEY);
+                if (stored && Array.isArray(stored)) {
+                    const updatedServices = stored.filter(id => id !== booking.serviceId);
+                    setData(HIRED_SERVICES_KEY, updatedServices);
+                }
+            }
+            
             toaster.create({ title: "Reserva cancelada!", type: "success" });
             onClose();
         } catch (error: any) {
