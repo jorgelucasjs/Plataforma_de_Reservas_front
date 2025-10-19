@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useServiceStore } from "../../stores/serviceStore";
 import { useBookingStore } from "../../stores/bookingStore";
+import { useUserStore } from "../../stores/userStore";
 import { toaster } from "../components/ui/toaster";
 import { CURRENT_USER_INFO } from "@/utils/LocalstorageKeys";
 import { SearchFilters } from "../components/SearchFilters";
@@ -17,6 +18,7 @@ export const ServicesPage = () => {
     const user = CURRENT_USER_INFO
     const { services, myServices, fetchServices, fetchServicesByProvider, deleteService, isLoading } = useServiceStore();
     const { createBooking } = useBookingStore();
+    const { fetchUserByEmail } = useUserStore();
     const [searchTerm, setSearchTerm] = useState("");
     const [minPrice, setMinPrice] = useState("");
     const [maxPrice, setMaxPrice] = useState("");
@@ -54,6 +56,12 @@ export const ServicesPage = () => {
         setIsBookingLoading(true);
         try {
             await createBooking(selectedServiceId, selectedServicePrice);
+            
+            // Atualiza o saldo do usuário após contratar o serviço
+            if (user?.email) {
+                await fetchUserByEmail(user.email);
+            }
+            
             toaster.create({
                 title: "Serviço",
                 description: "Serviço contratado com sucesso!",
