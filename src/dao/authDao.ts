@@ -9,13 +9,13 @@ import type { LoginCredentials, RegisterData, AuthResponse } from '../types/auth
  * @returns Promise<AuthResponse> - Authentication response with token and user data
  */
 export async function loginUser(credentials: LoginCredentials): Promise<AuthResponse> {
-  try {
-    const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
-    return response;
-  } catch (error) {
-    // Re-throw the error as it's already properly formatted by the API client
-    throw error;
-  }
+	try {
+		const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
+		return response;
+	} catch (error) {
+		// Re-throw the error as it's already properly formatted by the API client
+		throw error;
+	}
 }
 
 /**
@@ -24,13 +24,13 @@ export async function loginUser(credentials: LoginCredentials): Promise<AuthResp
  * @returns Promise<AuthResponse> - Authentication response with token and user data
  */
 export async function registerUser(userData: RegisterData): Promise<AuthResponse> {
-  try {
-    const response = await apiClient.post<AuthResponse>('/auth/register', userData);
-    return response;
-  } catch (error) {
-    // Re-throw the error as it's already properly formatted by the API client
-    throw error;
-  }
+	try {
+		const response = await apiClient.post<AuthResponse>('/auth/register', userData);
+		return response;
+	} catch (error) {
+		// Re-throw the error as it's already properly formatted by the API client
+		throw error;
+	}
 }
 
 /**
@@ -38,12 +38,12 @@ export async function registerUser(userData: RegisterData): Promise<AuthResponse
  * @returns Promise<AuthResponse> - New authentication response
  */
 export async function refreshToken(): Promise<AuthResponse> {
-  try {
-    const response = await apiClient.post<AuthResponse>('/auth/refresh');
-    return response;
-  } catch (error) {
-    throw error;
-  }
+	try {
+		const response = await apiClient.post<AuthResponse>('/auth/refresh');
+		return response;
+	} catch (error) {
+		throw error;
+	}
 }
 
 /**
@@ -51,12 +51,12 @@ export async function refreshToken(): Promise<AuthResponse> {
  * @returns Promise<void>
  */
 export async function logoutUser(): Promise<void> {
-  try {
-    await apiClient.post<void>('/auth/logout');
-  } catch (error) {
-    // Even if logout fails on server, we should still clear local token
-    console.warn('Server logout failed:', error);
-  }
+	try {
+		await apiClient.post<void>('/auth/logout');
+	} catch (error) {
+		// Even if logout fails on server, we should still clear local token
+		console.warn('Server logout failed:', error);
+	}
 }
 
 /**
@@ -64,12 +64,12 @@ export async function logoutUser(): Promise<void> {
  * @returns Promise<boolean> - True if token is valid
  */
 export async function verifyToken(): Promise<boolean> {
-  try {
-    await apiClient.get<void>('/auth/verify');
-    return true;
-  } catch (error) {
-    return false;
-  }
+	try {
+		await apiClient.get<void>('/auth/verify');
+		return true;
+	} catch (error) {
+		return false;
+	}
 }
 
 /**
@@ -77,10 +77,10 @@ export async function verifyToken(): Promise<boolean> {
  * @returns Promise<User> - Current user data
  */
 export async function getCurrentUser(): Promise<import('../types/auth').User> {
-  try {
-    const response = await apiClient.get<import('../types/auth').User>('/auth/me');
-    return response;
-  } catch (error) {
-    throw error;
-  }
+	try {
+		const response = await apiClient.get<import('../types/auth').User>('/auth/me');
+		return response;
+	} catch (error) {
+		throw error;
+	}
 }

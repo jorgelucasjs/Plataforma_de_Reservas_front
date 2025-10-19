@@ -88,6 +88,8 @@ export function RegisterPage() {
             await registerUser(data);
             navigate('/dashboard', { replace: true });
         } catch (err: any) {
+
+            console.log("error", err)
             // Handle server validation errors
             if (ServerValidationService.isValidationError(err)) {
                 const { fieldErrors, generalError } = ServerValidationService.handleServerValidationError(err);
@@ -153,7 +155,7 @@ export function RegisterPage() {
                         isRequired
                         type="text"
                         maxLength={9}
-                        helperText="Número de identificação fiscal português"
+                        helperText="Número de identificação"
                     />
 
                     <TextField
@@ -194,26 +196,8 @@ export function RegisterPage() {
                         isRequired
                         type="password"
                         autoComplete="new-password"
-                        helperText="Pelo menos 8 caracteres com letras e números"
+                        helperText="Pelo menos 8 caracteres"
                     />
-
-                    {/* <TextField
-                        label="Confirm Password"
-                        placeholder="Confirm your password"
-                        value={form.values.confirmPassword}
-                        onChange={(value) => {
-                            form.setValue('confirmPassword', value);
-                            form.validateField('confirmPassword', 'onChange');
-                        }}
-                        onBlur={() => {
-                            form.setTouched('confirmPassword');
-                            form.validateField('confirmPassword', 'onBlur');
-                        }}
-                        error={form.touched.confirmPassword ? form.errors.confirmPassword || serverErrors.confirmPassword : undefined}
-                        isRequired
-                        type="password"
-                        autoComplete="new-password"
-                    /> */}
 
                     <FormField
                         label="Tipo de Conta"
@@ -270,7 +254,7 @@ export function RegisterPage() {
                         w="full"
                         loading={form.isSubmitting || isLoading}
                         loadingText="A criar conta..."
-                        //disabled={!form.isValid}
+                        disabled={form.values.password.length <= 7 ? true : false}
                     >
                         Criar Conta
                     </Button>

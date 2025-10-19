@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { Box, Spinner, Center } from '@chakra-ui/react';
 import { useAuth } from '../hooks/useAuth';
+import { CURRENT_USER_INFO } from '@/utils/LocalstorageKeys';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -10,6 +11,8 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading, isInitialized } = useAuth();
   const location = useLocation();
+
+  const currentUser = CURRENT_USER_INFO
 
   // Show loading while checking authentication status or initializing
   if (isLoading || !isInitialized) {
@@ -23,7 +26,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   // Redirect to login if not authenticated, preserving the intended destination
-  if (!isAuthenticated) {
+  if (!currentUser) {
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 

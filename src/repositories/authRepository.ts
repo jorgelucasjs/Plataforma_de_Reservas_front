@@ -3,9 +3,11 @@
 import * as authDao from '../dao/authDao';
 import { useAuthStore } from '../stores/authStore';
 import { tokenService } from '../services/tokenService';
-import type { LoginCredentials, RegisterData, AuthResponse } from '../types/auth';
+import type { LoginCredentials, RegisterData, AuthResponse, User } from '../types/auth';
 import type { AppError } from '../types/error';
 import { ErrorType } from '../types/error';
+import { setData } from '@/dao/localStorage';
+import { LOCALSTORAGE_USERDATA } from '@/utils/LocalstorageKeys';
 
 export class AuthRepository {
   /**
@@ -15,7 +17,7 @@ export class AuthRepository {
    */
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     const { setUser, setToken, setIsAuthenticated, setLoading, setError } = useAuthStore.getState();
-    
+
     try {
       // Set loading state
       setLoading(true);
@@ -53,7 +55,7 @@ export class AuthRepository {
    */
   async register(userData: RegisterData): Promise<AuthResponse> {
     const { setUser, setToken, setIsAuthenticated, setLoading, setError } = useAuthStore.getState();
-    
+
     try {
       // Set loading state
       setLoading(true);
@@ -65,8 +67,19 @@ export class AuthRepository {
       // Call DAO to register
       const response = await authDao.registerUser(userData);
 
+      console.log("response", response)
+
       // Save token to storage
       tokenService.saveToken(response.token, response.expiresIn);
+
+
+      const userDataToSave: User = {
+        ...response.user,
+        token: response.token,
+        expiresIn: response.expiresIn
+      }
+
+      setData(LOCALSTORAGE_USERDATA, userDataToSave)
 
       // Update auth store
       setToken(response.token);
@@ -89,7 +102,7 @@ export class AuthRepository {
    */
   async logout(): Promise<void> {
     const { logout: clearAuthState, setLoading, setError } = useAuthStore.getState();
-    
+
     try {
       setLoading(true);
       setError(null);
@@ -112,7 +125,7 @@ export class AuthRepository {
    */
   async refreshToken(): Promise<AuthResponse> {
     const { setUser, setToken, setIsAuthenticated, setLoading, setError } = useAuthStore.getState();
-    
+
     try {
       setLoading(true);
       setError(null);
@@ -133,7 +146,7 @@ export class AuthRepository {
       // If refresh fails, logout user
       const { logout: clearAuthState } = useAuthStore.getState();
       clearAuthState();
-      
+
       const authError = this.handleAuthError(error);
       setError(authError.message);
       throw authError;
@@ -148,7 +161,7 @@ export class AuthRepository {
    */
   async verifyToken(): Promise<boolean> {
     const { setIsAuthenticated, setUser, setLastTokenCheck, setError } = useAuthStore.getState();
-    
+
     try {
       // Check if token exists locally
       if (!tokenService.hasValidToken()) {
@@ -161,7 +174,7 @@ export class AuthRepository {
         authDao.verifyToken(),
         authDao.getCurrentUser().catch(() => null) // Don't fail if user data fetch fails
       ]);
-      
+
       if (!isValid) {
         // Clear invalid token
         const { logout: clearAuthState } = useAuthStore.getState();
@@ -172,7 +185,7 @@ export class AuthRepository {
       // Update auth state with verified token
       setIsAuthenticated(true);
       setLastTokenCheck(Date.now());
-      
+
       // Update user data if available
       if (userData) {
         setUser(userData);
@@ -194,11 +207,11 @@ export class AuthRepository {
    */
   async verifyTokenWithServer(): Promise<boolean> {
     const { setError, setLastTokenCheck } = useAuthStore.getState();
-    
+
     try {
       // First try to verify current token
       const isValid = await this.verifyToken();
-      
+
       if (isValid) {
         return true;
       }
@@ -225,7 +238,7 @@ export class AuthRepository {
    */
   async initializeAuth(): Promise<void> {
     const { setLoading, setIsInitialized, setError } = useAuthStore.getState();
-    
+
     try {
       setLoading(true);
       setError(null);
@@ -234,7 +247,7 @@ export class AuthRepository {
       if (tokenService.hasValidToken()) {
         // Verify token with server and handle refresh if needed
         const isValid = await this.verifyTokenWithServer();
-        
+
         if (!isValid) {
           // Token verification failed, clear auth state
           const { logout: clearAuthState } = useAuthStore.getState();

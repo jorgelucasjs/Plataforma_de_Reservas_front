@@ -11,6 +11,8 @@ export interface User {
   balance: number;
   isActive: boolean;
   createdAt: string;
+  token?:string
+  expiresIn?:string
 }
 
 export interface LoginCredentials {
