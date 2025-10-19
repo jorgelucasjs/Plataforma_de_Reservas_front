@@ -9,9 +9,11 @@ export const useAuthStore = create<AuthStore>((set) => ({
   // Initial state
   user: null,
   token: tokenService.getToken(),
-  isAuthenticated: tokenService.hasValidToken(),
+  isAuthenticated: false, // Will be set after proper initialization
   isLoading: false,
   error: null,
+  isInitialized: false,
+  lastTokenCheck: 0,
 
   // Actions following the useXxxUiState pattern
   setUser: (user: User | null) => {
@@ -38,6 +40,14 @@ export const useAuthStore = create<AuthStore>((set) => ({
     set({ error });
   },
 
+  setIsInitialized: (isInitialized: boolean) => {
+    set({ isInitialized });
+  },
+
+  setLastTokenCheck: (timestamp: number) => {
+    set({ lastTokenCheck: timestamp });
+  },
+
   logout: () => {
     // Clear token from storage
     tokenService.clearToken();
@@ -49,6 +59,8 @@ export const useAuthStore = create<AuthStore>((set) => ({
       isAuthenticated: false,
       isLoading: false,
       error: null,
+      isInitialized: true, // Keep initialized state
+      lastTokenCheck: Date.now(),
     });
   },
 }));
@@ -61,11 +73,15 @@ export const useAuthUiState = () => {
     isAuthenticated,
     isLoading,
     error,
+    isInitialized,
+    lastTokenCheck,
     setUser,
     setToken,
     setIsAuthenticated,
     setLoading,
     setError,
+    setIsInitialized,
+    setLastTokenCheck,
     logout,
   } = useAuthStore();
 
@@ -76,6 +92,8 @@ export const useAuthUiState = () => {
     isAuthenticated,
     isLoading,
     error,
+    isInitialized,
+    lastTokenCheck,
     
     // Actions
     setUser,
@@ -83,6 +101,8 @@ export const useAuthUiState = () => {
     setIsAuthenticated,
     setLoading,
     setError,
+    setIsInitialized,
+    setLastTokenCheck,
     logout,
   };
 };

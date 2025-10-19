@@ -1,5 +1,5 @@
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   VStack,
   Heading,
@@ -16,13 +16,20 @@ import { ValidationErrorDisplay } from '../components/ValidationErrorDisplay';
 import { APPCOLOR } from '../../utils/colors';
 
 export function LoginPage() {
-  const { login, isLoading, error, clearError } = useAuth();
+  const { login, isLoading, error, clearError, isAuthenticated, isInitialized } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState<string>('');
 
   const from = location.state?.from?.pathname || '/dashboard';
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isInitialized && isAuthenticated) {
+      navigate(from, { replace: true });
+    }
+  }, [isInitialized, isAuthenticated, navigate, from]);
 
   const form = useFormValidation<LoginFormData>({
     identifier: {
@@ -56,6 +63,8 @@ export function LoginPage() {
       await login(data);
       navigate(from, { replace: true });
     } catch (err: any) {
+
+      console.log("err", err)
       // Handle server validation errors
       if (ServerValidationService.isValidationError(err)) {
         const { fieldErrors, generalError } = ServerValidationService.handleServerValidationError(err);
@@ -129,7 +138,7 @@ export function LoginPage() {
             w="full"
             loading={form.isSubmitting || isLoading}
             loadingText="A iniciar sessão..."
-            disabled={!form.isValid && Object.keys(form.touched).length > 0}
+            disabled={(!form.isValid && Object.keys(form.touched).length > 0) || form.isSubmitting || isLoading}
           >
             Iniciar Sessão
           </Button>

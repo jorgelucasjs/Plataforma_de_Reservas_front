@@ -71,3 +71,16 @@ export async function verifyToken(): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Get current user data using the stored token
+ * @returns Promise<User> - Current user data
+ */
+export async function getCurrentUser(): Promise<import('../types/auth').User> {
+  try {
+    const response = await apiClient.get<import('../types/auth').User>('/auth/me');
+    return response;
+  } catch (error) {
+    throw error;
+  }
+}

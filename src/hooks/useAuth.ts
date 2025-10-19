@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { tokenService } from '../services/tokenService';
 import { authRepository } from '../repositories/authRepository';
@@ -10,58 +10,58 @@ export function useAuth() {
     isAuthenticated,
     isLoading,
     error,
+    isInitialized,
+    lastTokenCheck,
     setToken,
     setIsAuthenticated,
     setLoading,
     setError,
+    setIsInitialized,
+    setLastTokenCheck,
     logout: storeLogout,
   } = useAuthStore();
 
   // Initialize authentication state on mount
-  useEffect(() => {
-    const initializeAuth = async () => {
-      setLoading(true);
-      
-      try {
-        const storedToken = tokenService.getToken();
-        
-        if (storedToken && tokenService.isTokenValid(storedToken)) {
-          // Token exists and is valid, verify with server and get user data
-          setToken(storedToken);
-          
-          try {
-            // This would typically be a "me" endpoint to get current user
-            // For now, we'll assume the token is valid and set authenticated
-            setIsAuthenticated(true);
-          } catch (error) {
-            // Token is invalid, clear it
-            tokenService.removeToken();
-            setToken(null);
-            setIsAuthenticated(false);
-          }
-        } else {
-          // No valid token found
-          tokenService.removeToken();
-          setToken(null);
-          setIsAuthenticated(false);
-        }
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-        setError('Failed to initialize authentication');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const initializeAuth = useCallback(async () => {
+    if (isInitialized) {
+      return; // Already initialized
+    }
 
+    try {
+      await authRepository.initializeAuth();
+    } catch (error) {
+      console.error('Auth initialization error:', error);
+      setError('Failed to initialize authentication');
+      setIsInitialized(true); // Mark as initialized even on error
+    }
+  }, [isInitialized, setError, setIsInitialized]);
+
+  useEffect(() => {
     initializeAuth();
-  }, [setToken, setIsAuthenticated, setLoading, setError]);
+  }, [initializeAuth]);
 
-  // Auto-refresh token before expiration
+  // Auto-refresh token before expiration and periodic verification
   useEffect(() => {
-    if (!token || !isAuthenticated) return;
+    if (!token || !isAuthenticated || !isInitialized) return;
 
-    const checkTokenExpiration = () => {
-      if (!tokenService.isTokenValid(token)) {
+    const checkTokenExpiration = async () => {
+      // Check if we need to verify token (every 5 minutes)
+      const now = Date.now();
+      const timeSinceLastCheck = now - lastTokenCheck;
+      const FIVE_MINUTES = 5 * 60 * 1000;
+
+      if (timeSinceLastCheck > FIVE_MINUTES) {
+        try {
+          const isValid = await authRepository.verifyTokenWithServer();
+          if (!isValid) {
+            logout();
+          }
+        } catch (error) {
+          console.warn('Token verification failed:', error);
+          // Don't logout on network errors, just log the warning
+        }
+      } else if (!tokenService.isTokenValid(token)) {
+        // Local token validation failed
         logout();
       }
     };
@@ -70,7 +70,7 @@ export function useAuth() {
     const interval = setInterval(checkTokenExpiration, 60000);
 
     return () => clearInterval(interval);
-  }, [token, isAuthenticated]);
+  }, [token, isAuthenticated, isInitialized, lastTokenCheck]);
 
   const login = async (credentials: { identifier: string; password: string }) => {
     setLoading(true);
@@ -111,14 +111,33 @@ export function useAuth() {
     }
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     tokenService.removeToken();
     storeLogout();
-  };
+  }, [storeLogout]);
 
-  const clearError = () => {
+  const clearError = useCallback(() => {
     setError(null);
-  };
+  }, [setError]);
+
+  // Verify token with server (useful for components that need to ensure auth state)
+  const verifyAuth = useCallback(async () => {
+    if (!isInitialized) {
+      await initializeAuth();
+      return;
+    }
+
+    if (token && isAuthenticated) {
+      try {
+        const isValid = await authRepository.verifyTokenWithServer();
+        if (!isValid) {
+          logout();
+        }
+      } catch (error) {
+        console.warn('Auth verification failed:', error);
+      }
+    }
+  }, [isInitialized, token, isAuthenticated, initializeAuth, logout]);
 
   return {
     // State
@@ -127,12 +146,15 @@ export function useAuth() {
     isAuthenticated,
     isLoading,
     error,
+    isInitialized,
     
     // Actions
     login,
     register,
     logout,
     clearError,
+    initializeAuth,
+    verifyAuth,
     
     // Computed values
     isClient: user?.userType === 'client',

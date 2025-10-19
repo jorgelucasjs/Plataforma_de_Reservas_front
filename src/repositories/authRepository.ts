@@ -147,7 +147,7 @@ export class AuthRepository {
    * @returns Promise<boolean> - True if token is valid
    */
   async verifyToken(): Promise<boolean> {
-    const { setIsAuthenticated, setError } = useAuthStore.getState();
+    const { setIsAuthenticated, setUser, setLastTokenCheck, setError } = useAuthStore.getState();
     
     try {
       // Check if token exists locally
@@ -156,8 +156,11 @@ export class AuthRepository {
         return false;
       }
 
-      // Verify token with server
-      const isValid = await authDao.verifyToken();
+      // Verify token with server and get user data
+      const [isValid, userData] = await Promise.all([
+        authDao.verifyToken(),
+        authDao.getCurrentUser().catch(() => null) // Don't fail if user data fetch fails
+      ]);
       
       if (!isValid) {
         // Clear invalid token
@@ -166,7 +169,15 @@ export class AuthRepository {
         return false;
       }
 
+      // Update auth state with verified token
       setIsAuthenticated(true);
+      setLastTokenCheck(Date.now());
+      
+      // Update user data if available
+      if (userData) {
+        setUser(userData);
+      }
+
       return true;
     } catch (error) {
       // On verification error, assume token is invalid
@@ -178,18 +189,57 @@ export class AuthRepository {
   }
 
   /**
+   * Verify token with server and handle refresh if needed
+   * @returns Promise<boolean> - True if token is valid or successfully refreshed
+   */
+  async verifyTokenWithServer(): Promise<boolean> {
+    const { setError, setLastTokenCheck } = useAuthStore.getState();
+    
+    try {
+      // First try to verify current token
+      const isValid = await this.verifyToken();
+      
+      if (isValid) {
+        return true;
+      }
+
+      // If verification failed, try to refresh token
+      try {
+        await this.refreshToken();
+        setLastTokenCheck(Date.now());
+        return true;
+      } catch (refreshError) {
+        // If refresh also fails, clear auth state
+        const { logout: clearAuthState } = useAuthStore.getState();
+        clearAuthState();
+        return false;
+      }
+    } catch (error) {
+      setError('Token verification failed');
+      return false;
+    }
+  }
+
+  /**
    * Initialize authentication state on app startup
    */
   async initializeAuth(): Promise<void> {
-    const { setLoading } = useAuthStore.getState();
+    const { setLoading, setIsInitialized, setError } = useAuthStore.getState();
     
     try {
       setLoading(true);
+      setError(null);
 
-      // Check if we have a valid token
+      // Check if we have a valid token locally
       if (tokenService.hasValidToken()) {
-        // Verify token with server
-        await this.verifyToken();
+        // Verify token with server and handle refresh if needed
+        const isValid = await this.verifyTokenWithServer();
+        
+        if (!isValid) {
+          // Token verification failed, clear auth state
+          const { logout: clearAuthState } = useAuthStore.getState();
+          clearAuthState();
+        }
       } else {
         // No valid token, ensure auth state is cleared
         const { logout: clearAuthState } = useAuthStore.getState();
@@ -202,6 +252,7 @@ export class AuthRepository {
       console.warn('Auth initialization failed:', error);
     } finally {
       setLoading(false);
+      setIsInitialized(true); // Mark as initialized regardless of success/failure
     }
   }
 

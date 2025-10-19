@@ -8,11 +8,11 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, isInitialized } = useAuth();
   const location = useLocation();
 
-  // Show loading while checking authentication status
-  if (isLoading) {
+  // Show loading while checking authentication status or initializing
+  if (isLoading || !isInitialized) {
     return (
       <Center minH="100vh">
         <Box textAlign="center">

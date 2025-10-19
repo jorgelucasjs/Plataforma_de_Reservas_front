@@ -83,8 +83,41 @@ export async function getMyServices(filters?: ServiceFilters): Promise<ServiceLi
     const queryString = params.toString();
     const url = queryString ? `/services/my-services?${queryString}` : '/services/my-services';
     
-    const response = await apiClient.get<ServiceListResponse>(url);
-    return response;
+    try {
+      const response = await apiClient.get<ServiceListResponse>(url);
+      return response;
+    } catch (error) {
+      // Enhanced error handling for missing route
+      if (error && typeof error === 'object' && 'type' in error && error.type === 'NOT_FOUND') {
+        console.warn('my-services route not found, attempting fallback to general services with provider filter');
+        
+        // Fallback: Use general services endpoint with provider filtering
+        // This assumes the backend can filter by current user when no specific endpoint exists
+        const fallbackParams = new URLSearchParams(params);
+        fallbackParams.append('provider', 'current'); // Backend should filter by current user
+        
+        const fallbackQueryString = fallbackParams.toString();
+        const fallbackUrl = fallbackQueryString ? `/services?${fallbackQueryString}` : '/services?provider=current';
+        
+        try {
+          const fallbackResponse = await apiClient.get<ServiceListResponse>(fallbackUrl);
+          
+          // Log successful fallback for monitoring
+          console.info('Successfully used fallback route for my-services', {
+            originalUrl: url,
+            fallbackUrl,
+            timestamp: new Date().toISOString()
+          });
+          
+          return fallbackResponse;
+        } catch (fallbackError) {
+          console.error('Fallback route also failed:', fallbackError);
+          throw error; // Throw original error
+        }
+      }
+      
+      throw error;
+    }
   } catch (error) {
     throw error;
   }

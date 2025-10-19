@@ -64,15 +64,28 @@ export class ServiceRepository {
     const { user } = useAuthStore.getState();
     
     try {
-      // Check if user is a provider
-      if (!user || user.userType !== 'provider') {
-        throw this.createAuthorizationError('Only providers can access their services');
+      // Enhanced user type validation
+      if (!user) {
+        throw this.createAuthorizationError('Authentication required to access services');
+      }
+
+      if (user.userType !== 'provider') {
+        // Log unauthorized access attempt for monitoring
+        console.warn(`Unauthorized access attempt to provider services by user type: ${user.userType}`, {
+          userId: user.id,
+          userType: user.userType,
+          timestamp: new Date().toISOString()
+        });
+        
+        throw this.createAuthorizationError(
+          `Access denied. Only providers can access their services. Current user type: ${user.userType}`
+        );
       }
 
       setLoading(true);
       setError(null);
 
-      // Load provider's services from API
+      // Load provider's services from API with enhanced error handling
       const response = await serviceDao.getMyServices(filters);
 
       // Update store with results
@@ -89,6 +102,12 @@ export class ServiceRepository {
     } catch (error) {
       const serviceError = this.handleServiceError(error);
       setError(serviceError.message);
+      
+      // Don't retry for authorization errors
+      if (serviceError.type === 'AUTHORIZATION_ERROR') {
+        throw serviceError;
+      }
+      
       throw serviceError;
     } finally {
       setLoading(false);
@@ -102,13 +121,10 @@ export class ServiceRepository {
    */
   async createService(serviceData: ServiceCreateData): Promise<Service> {
     const { addService, setLoading, setError } = useServiceStore.getState();
-    const { user } = useAuthStore.getState();
     
     try {
-      // Check if user is a provider
-      if (!user || user.userType !== 'provider') {
-        throw this.createAuthorizationError('Only providers can create services');
-      }
+      // Enhanced user type validation
+      this.validateUserTypeForOperation('provider', 'create services');
 
       setLoading(true);
       setError(null);
@@ -140,13 +156,10 @@ export class ServiceRepository {
    */
   async updateService(serviceId: string, serviceData: ServiceUpdateData): Promise<Service> {
     const { updateService: updateServiceInStore, setLoading, setError } = useServiceStore.getState();
-    const { user } = useAuthStore.getState();
     
     try {
-      // Check if user is a provider
-      if (!user || user.userType !== 'provider') {
-        throw this.createAuthorizationError('Only providers can update services');
-      }
+      // Enhanced user type validation
+      this.validateUserTypeForOperation('provider', 'update services');
 
       setLoading(true);
       setError(null);
@@ -185,13 +198,10 @@ export class ServiceRepository {
    */
   async deleteService(serviceId: string): Promise<void> {
     const { removeService, setLoading, setError } = useServiceStore.getState();
-    const { user } = useAuthStore.getState();
     
     try {
-      // Check if user is a provider
-      if (!user || user.userType !== 'provider') {
-        throw this.createAuthorizationError('Only providers can delete services');
-      }
+      // Enhanced user type validation
+      this.validateUserTypeForOperation('provider', 'delete services');
 
       setLoading(true);
       setError(null);
@@ -226,13 +236,10 @@ export class ServiceRepository {
    */
   async toggleServiceStatus(serviceId: string, isActive: boolean): Promise<Service> {
     const { updateService: updateServiceInStore, setLoading, setError } = useServiceStore.getState();
-    const { user } = useAuthStore.getState();
     
     try {
-      // Check if user is a provider
-      if (!user || user.userType !== 'provider') {
-        throw this.createAuthorizationError('Only providers can toggle service status');
-      }
+      // Enhanced user type validation
+      this.validateUserTypeForOperation('provider', 'toggle service status');
 
       setLoading(true);
       setError(null);
@@ -353,6 +360,46 @@ export class ServiceRepository {
     };
 
     return await this.loadServices(defaultFilters);
+  }
+
+  /**
+   * Validate user type before making provider-specific API calls
+   * @param requiredUserType - Required user type for the operation
+   * @param operation - Description of the operation being attempted
+   * @returns boolean - True if validation passes
+   */
+  private validateUserTypeForOperation(requiredUserType: 'provider' | 'client', operation: string): boolean {
+    const { user } = useAuthStore.getState();
+    
+    if (!user) {
+      throw this.createAuthorizationError(`Authentication required for ${operation}`);
+    }
+
+    if (user.userType !== requiredUserType) {
+      // Log unauthorized access attempt
+      console.warn(`Unauthorized ${operation} attempt`, {
+        userId: user.id,
+        userType: user.userType,
+        requiredType: requiredUserType,
+        operation,
+        timestamp: new Date().toISOString()
+      });
+      
+      throw this.createAuthorizationError(
+        `Access denied. Only ${requiredUserType}s can ${operation}. Current user type: ${user.userType}`
+      );
+    }
+
+    return true;
+  }
+
+  /**
+   * Check if current user can access provider-specific endpoints
+   * @returns boolean - True if user is a provider
+   */
+  private canAccessProviderEndpoints(): boolean {
+    const { user } = useAuthStore.getState();
+    return user?.userType === 'provider';
   }
 
   /**

@@ -1,5 +1,5 @@
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     VStack,
     Heading,
@@ -18,10 +18,17 @@ import { APPCOLOR } from '@/utils/colors';
 
 
 export function RegisterPage() {
-    const { register: registerUser, isLoading, error, clearError } = useAuth();
+    const { register: registerUser, isLoading, error, clearError, isAuthenticated, isInitialized } = useAuth();
     const navigate = useNavigate();
     const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
     const [generalError, setGeneralError] = useState<string>('');
+
+    // Redirect if already authenticated
+    useEffect(() => {
+        if (isInitialized && isAuthenticated) {
+            navigate('/dashboard', { replace: true });
+        }
+    }, [isInitialized, isAuthenticated, navigate]);
 
     const form = useFormValidation<RegisterFormData>({
         fullName: {

@@ -14,7 +14,12 @@ export function RoleBasedRoute({
   allowedRoles, 
   fallbackPath = '/dashboard' 
 }: RoleBasedRouteProps) {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isInitialized } = useAuth();
+
+  // If not initialized yet, let ProtectedRoute handle the loading state
+  if (!isInitialized) {
+    return null; // ProtectedRoute will show loading
+  }
 
   // If not authenticated, this should be handled by ProtectedRoute
   if (!isAuthenticated || !user) {

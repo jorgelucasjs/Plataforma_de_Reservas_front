@@ -54,6 +54,8 @@ export interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  isInitialized: boolean;
+  lastTokenCheck: number;
 }
 
 export interface AuthActions {
@@ -62,5 +64,7 @@ export interface AuthActions {
   setIsAuthenticated: (isAuth: boolean) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  setIsInitialized: (isInitialized: boolean) => void;
+  setLastTokenCheck: (timestamp: number) => void;
   logout: () => void;
 }

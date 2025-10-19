@@ -7,10 +7,10 @@ interface AuthGuardProps {
 }
 
 export function AuthGuard({ children }: AuthGuardProps) {
-  const { isLoading } = useAuth();
+  const { isLoading, isInitialized } = useAuth();
 
   // Show loading spinner while initializing authentication
-  if (isLoading) {
+  if (isLoading || !isInitialized) {
     return (
       <Center minH="100vh" bg="gray.50">
         <Box textAlign="center">

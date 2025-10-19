@@ -145,7 +145,7 @@ class PerformanceMonitor {
     }) as T;
   }
 
-  // Record component render performance
+  // Record component render performance with controlled logging
   recordComponentRender(componentName: string, renderTime: number): void {
     const existing = this.componentMetrics.get(componentName);
     
@@ -164,6 +164,11 @@ class PerformanceMonitor {
     }
 
     this.recordMetric(`component_render_${componentName}`, renderTime, 'timing');
+    
+    // Use performance logger for component performance with throttling
+    if (typeof window !== 'undefined' && (window as any).performanceLogger) {
+      (window as any).performanceLogger.logComponentPerformance(componentName, renderTime);
+    }
   }
 
   // Get performance metrics

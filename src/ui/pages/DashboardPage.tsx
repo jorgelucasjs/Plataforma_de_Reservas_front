@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -41,31 +41,170 @@ export function DashboardPage() {
   const { services, myServices } = useServiceUiState();
   const { bookings } = useBookingUiState();
 
-  // Load dashboard data on mount
+  // Loading states for different data types
+  const [loadingStates, setLoadingStates] = useState({
+    profile: false,
+    services: false,
+    bookings: false,
+  });
+
+  // Error states for different data types
+  const [errorStates, setErrorStates] = useState({
+    profile: null as string | null,
+    services: null as string | null,
+    bookings: null as string | null,
+  });
+
+  // Prevent multiple simultaneous API calls
+  const loadingRef = useRef({
+    profile: false,
+    services: false,
+    bookings: false,
+  });
+
+  // Helper function to update loading state
+  const updateLoadingState = (key: keyof typeof loadingStates, value: boolean) => {
+    setLoadingStates(prev => ({ ...prev, [key]: value }));
+    loadingRef.current[key] = value;
+  };
+
+  // Helper function to update error state
+  const updateErrorState = (key: keyof typeof errorStates, value: string | null) => {
+    setErrorStates(prev => ({ ...prev, [key]: value }));
+  };
+
+  // Load user profile and balance
+  const loadProfileData = async () => {
+    if (loadingRef.current.profile) {
+      console.log('Profile loading already in progress, skipping...');
+      return;
+    }
+
+    try {
+      updateLoadingState('profile', true);
+      updateErrorState('profile', null);
+      
+      await userRepository.loadProfile();
+      
+      console.log('Profile data loaded successfully');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load profile data';
+      console.error('Error loading profile data:', error);
+      updateErrorState('profile', errorMessage);
+    } finally {
+      updateLoadingState('profile', false);
+    }
+  };
+
+  // Load services data based on user type
+  const loadServicesData = async () => {
+    if (loadingRef.current.services) {
+      console.log('Services loading already in progress, skipping...');
+      return;
+    }
+
+    if (!user) {
+      console.log('No user available, skipping services load');
+      return;
+    }
+
+    try {
+      updateLoadingState('services', true);
+      updateErrorState('services', null);
+
+      if (isProvider) {
+        // Load provider-specific services
+        console.log('Loading provider services...');
+        await serviceRepository.loadMyServices();
+      } else if (isClient) {
+        // Load available services for clients
+        console.log('Loading available services for client...');
+        await serviceRepository.loadServices();
+      } else {
+        console.warn('Unknown user type, skipping services load:', user.userType);
+        return;
+      }
+      
+      console.log('Services data loaded successfully');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load services data';
+      console.error('Error loading services data:', error);
+      updateErrorState('services', errorMessage);
+      
+      // Don't retry automatically for authorization errors
+      if (error && typeof error === 'object' && 'type' in error && error.type === 'AUTHORIZATION_ERROR') {
+        console.warn('Authorization error loading services, user may not have access');
+      }
+    } finally {
+      updateLoadingState('services', false);
+    }
+  };
+
+  // Load bookings data
+  const loadBookingsData = async () => {
+    if (loadingRef.current.bookings) {
+      console.log('Bookings loading already in progress, skipping...');
+      return;
+    }
+
+    if (!user) {
+      console.log('No user available, skipping bookings load');
+      return;
+    }
+
+    try {
+      updateLoadingState('bookings', true);
+      updateErrorState('bookings', null);
+      
+      console.log('Loading user bookings...');
+      await bookingRepository.loadMyBookings();
+      
+      console.log('Bookings data loaded successfully');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load bookings data';
+      console.error('Error loading bookings data:', error);
+      updateErrorState('bookings', errorMessage);
+    } finally {
+      updateLoadingState('bookings', false);
+    }
+  };
+
+  // Load dashboard data on mount with conditional loading
   useEffect(() => {
     const loadDashboardData = async () => {
-      try {
-        // Load user profile and balance
-        await userRepository.loadProfile();
-        
-        if (isProvider) {
-          // Load provider-specific data
-          await serviceRepository.loadMyServices();
-          await bookingRepository.loadMyBookings();
-        } else if (isClient) {
-          // Load client-specific data
-          await serviceRepository.loadServices();
-          await bookingRepository.loadMyBookings();
-        }
-      } catch (error) {
-        console.error('Error loading dashboard data:', error);
+      if (!user) {
+        console.log('No user available, skipping dashboard data load');
+        return;
       }
+
+      console.log(`Loading dashboard data for ${user.userType}: ${user.fullName}`);
+
+      // Load profile data (always needed)
+      await loadProfileData();
+
+      // Load data based on user type
+      if (isProvider) {
+        console.log('Loading provider-specific data...');
+        await Promise.all([
+          loadServicesData(), // Provider services
+          loadBookingsData()  // Provider bookings
+        ]);
+      } else if (isClient) {
+        console.log('Loading client-specific data...');
+        await Promise.all([
+          loadServicesData(), // Available services
+          loadBookingsData()  // Client bookings
+        ]);
+      } else {
+        console.warn('Unknown user type, loading minimal data:', user.userType);
+        await loadBookingsData(); // At least try to load bookings
+      }
+
+      console.log('Dashboard data loading completed');
     };
 
-    if (user) {
-      loadDashboardData();
-    }
-  }, [user, isProvider, isClient]);
+    loadDashboardData();
+  }, [user?.id, user?.userType]); // Only re-run if user ID or type changes
 
   // Quick action handlers
   const handleCreateService = () => {
@@ -124,6 +263,11 @@ export function DashboardPage() {
   const providerStats = isProvider ? getProviderStats() : null;
   const clientStats = isClient ? getClientStats() : null;
 
+  // Retry functions for failed data loads
+  const retryProfileLoad = () => loadProfileData();
+  const retryServicesLoad = () => loadServicesData();
+  const retryBookingsLoad = () => loadBookingsData();
+
   return (
     <VStack gap={6} align="stretch">
       {/* Welcome Header */}
@@ -142,8 +286,56 @@ export function DashboardPage() {
           <Text color="gray.600" fontSize="sm">
             Última atualização: {new Date().toLocaleDateString('pt-PT')}
           </Text>
+          {(loadingStates.profile || loadingStates.services || loadingStates.bookings) && (
+            <Badge colorPalette="yellow" variant="subtle" size="sm">
+              Carregando...
+            </Badge>
+          )}
         </HStack>
       </Box>
+
+      {/* Error Messages */}
+      {(errorStates.profile || errorStates.services || errorStates.bookings) && (
+        <Card.Root borderColor="red.200" bg="red.50">
+          <Card.Body>
+            <VStack align="stretch" gap={2}>
+              <Text fontWeight="medium" color="red.700">
+                Alguns dados não puderam ser carregados:
+              </Text>
+              {errorStates.profile && (
+                <HStack justify="space-between">
+                  <Text fontSize="sm" color="red.600">
+                    Perfil: {errorStates.profile}
+                  </Text>
+                  <Button size="xs" variant="outline" onClick={retryProfileLoad}>
+                    Tentar novamente
+                  </Button>
+                </HStack>
+              )}
+              {errorStates.services && (
+                <HStack justify="space-between">
+                  <Text fontSize="sm" color="red.600">
+                    Serviços: {errorStates.services}
+                  </Text>
+                  <Button size="xs" variant="outline" onClick={retryServicesLoad}>
+                    Tentar novamente
+                  </Button>
+                </HStack>
+              )}
+              {errorStates.bookings && (
+                <HStack justify="space-between">
+                  <Text fontSize="sm" color="red.600">
+                    Reservas: {errorStates.bookings}
+                  </Text>
+                  <Button size="xs" variant="outline" onClick={retryBookingsLoad}>
+                    Tentar novamente
+                  </Button>
+                </HStack>
+              )}
+            </VStack>
+          </Card.Body>
+        </Card.Root>
+      )}
 
       {/* Balance Card */}
       <Card.Root>
@@ -153,18 +345,28 @@ export function DashboardPage() {
               <Text fontSize="sm" color="gray.600" fontWeight="medium">
                 Saldo Atual
               </Text>
-              <Text fontSize="2xl" fontWeight="bold" color="green.600">
-                {formatCurrency(currentBalance)}
-              </Text>
+              {loadingStates.profile ? (
+                <Text fontSize="2xl" fontWeight="bold" color="gray.400">
+                  Carregando...
+                </Text>
+              ) : errorStates.profile ? (
+                <Text fontSize="2xl" fontWeight="bold" color="red.500">
+                  Erro
+                </Text>
+              ) : (
+                <Text fontSize="2xl" fontWeight="bold" color="green.600">
+                  {formatCurrency(currentBalance)}
+                </Text>
+              )}
               <Text fontSize="xs" color="gray.500">
                 Disponível para {isProvider ? 'levantamento' : 'reservas'}
               </Text>
             </VStack>
             <Box
               p={3}
-              bg="green.100"
+              bg={loadingStates.profile ? "gray.100" : "green.100"}
               borderRadius="full"
-              color="green.600"
+              color={loadingStates.profile ? "gray.400" : "green.600"}
             >
               <HiCurrencyEuro size={24} />
             </Box>
@@ -174,8 +376,56 @@ export function DashboardPage() {
 
       {/* Stats Grid */}
       <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' }} gap={4}>
-        {isProvider && providerStats && (
+        {/* Loading state for stats */}
+        {(loadingStates.services || loadingStates.bookings) && (
           <>
+            {[1, 2, 3, 4].map((i) => (
+              <Card.Root key={i}>
+                <Card.Body>
+                  <VStack align="start" gap={2}>
+                    <Text fontSize="sm" color="gray.400">
+                      Carregando...
+                    </Text>
+                    <Text fontSize="2xl" fontWeight="bold" color="gray.300">
+                      --
+                    </Text>
+                    <Text fontSize="sm" color="gray.300">
+                      Aguarde...
+                    </Text>
+                  </VStack>
+                </Card.Body>
+              </Card.Root>
+            ))}
+          </>
+        )}
+
+        {/* Error state for stats */}
+        {!loadingStates.services && !loadingStates.bookings && (errorStates.services || errorStates.bookings) && (
+          <Card.Root borderColor="red.200" bg="red.50">
+            <Card.Body>
+              <VStack align="start" gap={2}>
+                <Text fontSize="sm" color="red.600" fontWeight="medium">
+                  Erro ao carregar estatísticas
+                </Text>
+                <Text fontSize="sm" color="red.500">
+                  {errorStates.services || errorStates.bookings}
+                </Text>
+                <Button size="xs" variant="outline" onClick={() => {
+                  if (errorStates.services) retryServicesLoad();
+                  if (errorStates.bookings) retryBookingsLoad();
+                }}>
+                  Tentar novamente
+                </Button>
+              </VStack>
+            </Card.Body>
+          </Card.Root>
+        )}
+
+        {/* Normal stats display */}
+        {!loadingStates.services && !loadingStates.bookings && !errorStates.services && !errorStates.bookings && (
+          <>
+            {isProvider && providerStats && (
+              <>
             <Card.Root>
               <Card.Body>
                 <VStack align="start" gap={2}>
@@ -317,6 +567,8 @@ export function DashboardPage() {
                 </VStack>
               </Card.Body>
             </Card.Root>
+              </>
+            )}
           </>
         )}
       </Grid>
