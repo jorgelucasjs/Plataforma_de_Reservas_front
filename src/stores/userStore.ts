@@ -11,6 +11,7 @@ interface UserStore {
 
   addBalance: (email: string, amount: number) => Promise<void>;
   refreshUser: () => void;
+  fetchUserByEmail: (email: string) => Promise<User | null>;
   clearError: () => void;
 }
 
@@ -41,6 +42,26 @@ export const useUserStore = create<UserStore>((set) => ({
   refreshUser: () => {
     const user = getData(LOCALSTORAGE_USERDATA);
     set({ user });
+  },
+
+  fetchUserByEmail: async (email: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await userDao.getUserByEmail(email);
+      const userData = response.data.data;
+      
+      // Atualiza o localStorage com os dados mais recentes
+      const currentUser = getData(LOCALSTORAGE_USERDATA);
+      const updatedUser = { ...currentUser, ...userData };
+      setData(LOCALSTORAGE_USERDATA, updatedUser);
+      
+      set({ user: updatedUser, isLoading: false });
+      return updatedUser;
+    } catch (error: any) {
+      const message = error.response?.data?.message || "Erro ao buscar usuário";
+      set({ error: message, isLoading: false });
+      return null;
+    }
   },
 
   clearError: () => set({ error: null }),

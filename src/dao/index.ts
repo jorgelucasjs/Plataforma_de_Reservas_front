@@ -19,6 +19,9 @@ export const userDao = {
 
   getBalance: () => apiClient.get<{ data: { balance: number } }>("/users/balance"),
 
+  getUserByEmail: (email: string) => 
+    apiClient.get<{ data: User }>("/services/user-by-email", { email }),
+
   addBalance: (data: { email: string; amount: number }) =>
     apiClient.post<{ success: boolean; message: string; user: User }>("/auth/add-balance", data),
 };

@@ -20,22 +20,27 @@ import { useServiceStore } from "../../stores/serviceStore";
 import { useBookingStore } from "../../stores/bookingStore";
 import { toaster } from "../components/ui/toaster";
 import { CURRENT_USER_INFO } from "@/utils/LocalstorageKeys";
+import { APPCOLOR } from "@/utils/colors";
 
 export const ServicesPage = () => {
     const navigate = useNavigate();
-    const  user  = CURRENT_USER_INFO
+    const user = CURRENT_USER_INFO
     const { services, myServices, fetchServices, fetchServicesByProvider, deleteService, isLoading } = useServiceStore();
     const { createBooking } = useBookingStore();
     const [searchTerm, setSearchTerm] = useState("");
     const [minPrice, setMinPrice] = useState("");
     const [maxPrice, setMaxPrice] = useState("");
     const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
-    const [isOpen, setIsOpen] = useState(false);
+    const [selectedServicePrice, setSelectedServicePrice] = useState<number>(0);
+    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+    const [isBookingOpen, setIsBookingOpen] = useState(false);
+    const [isBookingLoading, setIsBookingLoading] = useState(false);
 
-    const onOpen = () => setIsOpen(true);
-    const onClose = () => setIsOpen(false);
+    const onDeleteOpen = () => setIsDeleteOpen(true);
+    const onDeleteClose = () => setIsDeleteOpen(false);
+    const onBookingOpen = () => setIsBookingOpen(true);
+    const onBookingClose = () => setIsBookingOpen(false);
 
-    console.log("user", user)
 
     useEffect(() => {
         if (user?.userType === "provider" && user?.id) {
@@ -54,15 +59,20 @@ export const ServicesPage = () => {
         await fetchServices(params);
     };
 
-    const handleBookService = async (serviceId: string, servicePrice: number) => {
+    const handleBookService = async () => {
+        if (!selectedServiceId) return;
+        setIsBookingLoading(true);
         try {
-            await createBooking(serviceId, servicePrice);
+            await createBooking(selectedServiceId, selectedServicePrice);
             toaster.create({
                 title: "Serviço",
                 description: "Serviço contratado com sucesso!",
                 type: 'success',
                 duration: 3000
             });
+            onBookingClose();
+            setSelectedServiceId(null);
+            setSelectedServicePrice(0);
         } catch (error: any) {
             const errorMessage = error.response?.data?.message || error.message || "Erro ao contratar serviço";
             toaster.create({
@@ -71,6 +81,8 @@ export const ServicesPage = () => {
                 type: 'error',
                 duration: 3000
             });
+        } finally {
+            setIsBookingLoading(false);
         }
     };
 
@@ -84,7 +96,7 @@ export const ServicesPage = () => {
                 type: 'success',
                 duration: 3000
             });
-            onClose();
+            onDeleteClose();
             setSelectedServiceId(null);
         } catch (error: any) {
             const errorMessage = error.response?.data?.message || error.message || "Erro ao eliminar serviço";
@@ -145,7 +157,14 @@ export const ServicesPage = () => {
             ) : (
                 <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }} gap="6">
                     {displayServices.map((service) => (
-                        <Card.Root key={service.id} variant="elevated" _hover={{ boxShadow: "lg" }}>
+                        <Card.Root
+                            key={service.id}
+                            bg="white"
+                            border="1px solid"
+                            borderColor="gray.200"
+                            shadow="md"
+                            _hover={{ boxShadow: "lg", transform: "translateY(-2px)", transition: "all 0.3s ease" }}
+                        >
                             <Card.Body>
                                 <VStack align="start" p="3">
                                     <Heading size="md">{service.name}</Heading>
@@ -178,7 +197,7 @@ export const ServicesPage = () => {
                                                     flex="1"
                                                     onClick={() => {
                                                         setSelectedServiceId(service.id);
-                                                        onOpen();
+                                                        onDeleteOpen();
                                                     }}
                                                 >
                                                     Eliminar
@@ -190,7 +209,11 @@ export const ServicesPage = () => {
                                                 colorScheme="green"
                                                 size="sm"
                                                 width="full"
-                                                onClick={() => handleBookService(service.id, service.price)}
+                                                onClick={() => {
+                                                    setSelectedServiceId(service.id);
+                                                    setSelectedServicePrice(service.price);
+                                                    onBookingOpen();
+                                                }}
                                             >
                                                 Contratar
                                             </Button>
@@ -203,7 +226,8 @@ export const ServicesPage = () => {
                 </Grid>
             )}
 
-            <Dialog.Root open={isOpen} onOpenChange={(e) => setIsOpen(e.open)}>
+            {/* Modal de Confirmação de Eliminação */}
+            <Dialog.Root open={isDeleteOpen} onOpenChange={(e) => setIsDeleteOpen(e.open)}>
                 <Dialog.Backdrop />
                 <Dialog.Positioner>
                     <Dialog.Content>
@@ -216,11 +240,57 @@ export const ServicesPage = () => {
                             Tem a certeza que deseja eliminar este serviço? Esta ação não pode ser desfeita.
                         </Dialog.Body>
                         <Dialog.Footer>
-                            <Button onClick={onClose}>
+                            <Button onClick={onDeleteClose}>
                                 Cancelar
                             </Button>
                             <Button colorScheme="red" onClick={handleDeleteService} ml={3}>
                                 Eliminar
+                            </Button>
+                        </Dialog.Footer>
+                    </Dialog.Content>
+                </Dialog.Positioner>
+            </Dialog.Root>
+
+            {/* Modal de Confirmação de Contratação */}
+            <Dialog.Root open={isBookingOpen} onOpenChange={(e) => {
+                if(!isBookingOpen){
+                    setIsBookingOpen(e.open)
+                }
+            }}>
+                <Dialog.Backdrop />
+                <Dialog.Positioner>
+                    <Dialog.Content bg={"#fff"}>
+                        <Dialog.Header>
+                            <Dialog.Title fontSize="lg" fontWeight="bold">
+                                Confirmar Contratação
+                            </Dialog.Title>
+                        </Dialog.Header>
+                        <Dialog.Body>
+                            <VStack align="start" gap="3">
+                                <Text>Deseja prosseguir com a contratação deste serviço?</Text>
+                                <Box p="3" bg="gray.50" borderRadius="md" width="full">
+                                    <Text fontWeight="semibold" mb="1">Valor do serviço:</Text>
+                                    <Text fontSize="2xl" fontWeight="bold" color="green.600">
+                                        ${selectedServicePrice.toFixed(2)}
+                                    </Text>
+                                </Box>
+                                <Text fontSize="sm" color="gray.600">
+                                    O valor será debitado do seu saldo disponível.
+                                </Text>
+                            </VStack>
+                        </Dialog.Body>
+                        <Dialog.Footer>
+                            <Button onClick={onBookingClose} disabled={isBookingLoading}>
+                                Cancelar
+                            </Button>
+                            <Button
+                                bg={APPCOLOR}
+                                onClick={handleBookService}
+                                ml={3}
+                                color={"#fff"}
+                                loading={isBookingLoading}
+                            >
+                                Confirmar Contratação
                             </Button>
                         </Dialog.Footer>
                     </Dialog.Content>

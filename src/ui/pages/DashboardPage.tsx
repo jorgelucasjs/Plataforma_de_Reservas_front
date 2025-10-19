@@ -24,19 +24,36 @@ export const DashboardPage = () => {
     const navigate = useNavigate();
     const { myServices, fetchMyServices } = useServiceStore();
     const { bookings, fetchMyBookings } = useBookingStore();
-    const { refreshUser } = useUserStore();
+    const { user, fetchUserByEmail, isLoading } = useUserStore();
     const [isBalanceModalOpen, setIsBalanceModalOpen] = useState(false);
 
-    const user = getData(LOCALSTORAGE_USERDATA) as User;
+    const localUser = getData(LOCALSTORAGE_USERDATA) as User;
 
     useEffect(() => {
-        refreshUser();
+        const loadUserData = async () => {
+            if (localUser?.email) {
+                // Busca dados atualizados do usuário da base de dados
+                await fetchUserByEmail(localUser.email);
+            }
+        };
+        loadUserData();
+    }, []);
+
+    useEffect(() => {
         if (user?.userType === "provider") {
             fetchMyServices();
-        } else {
+        } else if (user?.userType === "client") {
             fetchMyBookings();
         }
-    }, []);
+    }, [user?.userType]);
+
+    if (isLoading && !user) {
+        return (
+            <Container maxW="6xl" py="8">
+                <Text>Carregando...</Text>
+            </Container>
+        );
+    }
 
     return (
         <Container maxW="6xl" py="8">

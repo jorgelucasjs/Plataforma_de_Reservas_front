@@ -1,5 +1,6 @@
-import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ChakraProvider } from "@chakra-ui/react";
+import { system } from "./theme";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LoginPage } from "./ui/pages/LoginPage";
 import { DashboardPage } from "./ui/pages/DashboardPage";
 import { ServicesPage } from "./ui/pages/ServicesPage";
@@ -11,11 +12,13 @@ import { ProfilePage } from "./ui/pages/ProfilePage";
 import { Navigation } from "./ui/components/Navigation";
 import { Toaster } from "./ui/components/ui/toaster";
 import ProtectedRoute from "./ui/routes/ProtectedRoute";
+import { ColorModeProvider } from "./ui/components/ui/color-mode";
 
 export function App() {
 
 	return (
-		<ChakraProvider value={defaultSystem}>
+		<ChakraProvider value={system}>
+			<ColorModeProvider defaultTheme="light" forcedTheme="light">
 			<BrowserRouter>
 				<Routes>
 					<Route path="/login" element={<LoginPage />} />
@@ -94,6 +97,7 @@ export function App() {
 				</Routes>
 				<Toaster />
 			</BrowserRouter>
+			</ColorModeProvider>
 		</ChakraProvider>
 	);
 }
