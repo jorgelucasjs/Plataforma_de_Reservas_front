@@ -18,6 +18,9 @@ export const userDao = {
   getProfile: () => apiClient.get<User>("/users/profile"),
 
   getBalance: () => apiClient.get<{ data: { balance: number } }>("/users/balance"),
+
+  addBalance: (data: { email: string; amount: number }) =>
+    apiClient.post<{ success: boolean; message: string; user: User }>("/auth/add-balance", data),
 };
 
 export const serviceDao = {

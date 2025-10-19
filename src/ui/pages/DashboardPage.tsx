@@ -13,18 +13,24 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useServiceStore } from "../../stores/serviceStore";
 import { useBookingStore } from "../../stores/bookingStore";
-import { useEffect } from "react";
+import { useUserStore } from "../../stores/userStore";
+import { useEffect, useState } from "react";
 import { LOCALSTORAGE_USERDATA } from "@/utils/LocalstorageKeys";
 import { getData } from "@/dao/localStorage";
+import { AddBalanceModal } from "../components/AddBalanceModal";
+import type { User } from "@/types";
 
 export const DashboardPage = () => {
     const navigate = useNavigate();
     const { myServices, fetchMyServices } = useServiceStore();
     const { bookings, fetchMyBookings } = useBookingStore();
+    const { refreshUser } = useUserStore();
+    const [isBalanceModalOpen, setIsBalanceModalOpen] = useState(false);
 
-    const user = getData(LOCALSTORAGE_USERDATA);
+    const user = getData(LOCALSTORAGE_USERDATA) as User;
 
     useEffect(() => {
+        refreshUser();
         if (user?.userType === "provider") {
             fetchMyServices();
         } else {
@@ -63,12 +69,27 @@ export const DashboardPage = () => {
                     _hover={{ boxShadow: "lg", transform: "translateY(-2px)", transition: "all 0.3s ease" }}
                 >
                     <Card.Body p="6">
-                        <Stat.Root>
-                            <Stat.Label color="gray.600" fontSize="md" fontWeight="medium">Saldo</Stat.Label>
-                            <Stat.ValueText fontSize="3xl" fontWeight="bold" color="green.600">
-                                ${user?.balance?.toFixed(2) ?? "0.00"}
-                            </Stat.ValueText>
-                        </Stat.Root>
+                        <VStack align="stretch" gap="3">
+                            <Stat.Root>
+                                <Stat.Label color="gray.600" fontSize="md" fontWeight="medium">Saldo</Stat.Label>
+                                <Stat.ValueText fontSize="3xl" fontWeight="bold" color="green.600">
+                                    ${user?.balance?.toFixed(2) ?? "0.00"}
+                                </Stat.ValueText>
+                            </Stat.Root>
+
+                            {
+                                user?.userType === "client" ?
+                                    <Button
+                                        colorScheme="green"
+                                        size="sm"
+                                        onClick={() => setIsBalanceModalOpen(true)}
+                                    >
+                                        Carregar Conta
+                                    </Button>
+                                    :
+                                    null
+                            }
+                        </VStack>
                     </Card.Body>
                 </Card.Root>
 
@@ -200,6 +221,12 @@ export const DashboardPage = () => {
                     </Card.Body>
                 </Card.Root>
             )}
+
+            <AddBalanceModal
+                isOpen={isBalanceModalOpen}
+                onClose={() => setIsBalanceModalOpen(false)}
+                userEmail={user?.email || ""}
+            />
         </Container>
     );
 };
