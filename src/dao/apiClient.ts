@@ -3,7 +3,7 @@ import axios, { type AxiosInstance } from "axios";
 const API_BASE_URL = window.location.hostname === "localhost" ?
     "http://127.0.0.1:5002/angolaeventos-cd238/us-central1/sistemaDeReservaServer"
     :
-    "https://us-central1-angolaeventos-cd238.cloudfunctions.net/sistemaDeReservaServer";
+    "https://sistemadereservaserver-33vs75arbq-uc.a.run.app";
 
 class ApiClient {
     private client: AxiosInstance;
